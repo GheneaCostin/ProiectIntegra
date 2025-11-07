@@ -1,7 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.models.User;
-import com.example.Backend.repository.UserRepository;
+import com.example.Backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,33 +11,38 @@ import java.util.Optional;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository repository;
+    private final UserService service;
 
-    public UserController(UserRepository repository) {
-        this.repository = repository;
+    public UserController(UserService service) {
+        this.service = service  ;
     }
 
 
     @GetMapping
     public List<User> getAllUsers() {
-        return repository.findAll();
+        return service.getAllUsers();
     }
 
     // GET: user după email
     @GetMapping("/{email}")
-    public Optional<User> getUserByUsername(@PathVariable String email) {
-        return repository.findByEmail(email);
+    public Optional<User> getUserByEmail(@PathVariable String email) {
+        return service.getUserByEmail(email);
+    }
+    // GET: user după id
+    @GetMapping("/id/{id}")
+    public Optional<User> getUserById(@PathVariable String id) {
+        return service.getUserById(id);
     }
 
     // POST: adaugă un nou user
     @PostMapping
     public User addUser(@RequestBody User user) {
-        return repository.save(user);
+        return service.addUser(user);
     }
 
     // DELETE: șterge un user după id
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable String id) {
-        repository.deleteById(id);
+        service.deleteUser(id);
     }
 }
