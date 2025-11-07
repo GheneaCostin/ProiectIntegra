@@ -5,6 +5,7 @@ import com.example.Backend.models.UserDetails;
 import com.example.Backend.repository.UserDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -22,12 +23,12 @@ public class UserDetailsService {
         this.userDetailsRepository = repository;
     }
 
-    @GetMapping
+
     public List<UserDetails> getAllUsersDetails() {
         return userDetailsRepository.findAll();
     }
 
-    @PostMapping
+
     public UserDetails addUserDetails(UserDetails userDetails) {
         return userDetailsRepository.save(userDetails);
     }

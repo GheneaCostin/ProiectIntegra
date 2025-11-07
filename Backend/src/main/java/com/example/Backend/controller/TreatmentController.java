@@ -18,8 +18,8 @@ public class TreatmentController {
         this.treatmentsService = treatmentsService;
     }
 
-    @GetMapping
-    public Optional<Treatments> getTreatmentById(String id) {
+    @GetMapping("/id/{id}")
+    public Optional<Treatments> getTreatmentById(@PathVariable String id) {
         return Optional.ofNullable(treatmentsService.getTreatmentById(id));
     }
 
@@ -29,11 +29,11 @@ public class TreatmentController {
     }
 
     @PostMapping
-    public Treatments addTreatment(Treatments treatment) {
+    public Treatments addTreatment(@RequestBody Treatments treatment) {
         return treatmentsService.addTreatment(treatment);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void deleteTreatment(@PathVariable String id) {
         treatmentsService.deleteTreatment(id);
     }

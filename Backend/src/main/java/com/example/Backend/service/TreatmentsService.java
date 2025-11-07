@@ -5,7 +5,6 @@ import com.example.Backend.models.Treatments;
 import com.example.Backend.repository.TreatmentsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class TreatmentsService {
         this.treatmentsRepository = treatmentsRepository;
     }
 
-    @GetMapping
+
     public List<Treatments> getAllTreatments() {
         return treatmentsRepository.findAll();
     }

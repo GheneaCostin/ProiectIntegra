@@ -19,21 +19,21 @@ public class UserDetailsController {
     }
 
     @GetMapping
-    public List<UserDetails> getAllUsers() {
+    public List<UserDetails> getAllUsersDetails() {
         return userDetailsService.getAllUsersDetails();
     }
 
-    @GetMapping
-    public UserDetails addUserDetails(UserDetails userDetails) {
+    @PostMapping
+    public UserDetails addUserDetails(@RequestBody UserDetails userDetails) {
         return userDetailsService.addUserDetails(userDetails);
     }
-    @GetMapping
-    public Optional<UserDetails> getUserById(@PathVariable String id) {
+    @GetMapping("/id/{id}")
+    public Optional<UserDetails> getUserDetailsById(@PathVariable String id) {
         return userDetailsService.getUserDetailsById(id);
     }
 
-    @DeleteMapping
-    public void deleteUserById(@PathVariable String id) {
+    @DeleteMapping("/{id}")
+    public void deleteUserDetailsById(@PathVariable String id) {
         userDetailsService.deleteUserDetails(id);
     }
 

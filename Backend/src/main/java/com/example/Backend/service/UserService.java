@@ -19,29 +19,29 @@ public class UserService {
         this.userRepository = repository;
     }
 
-    @GetMapping
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     // POST: adaugă un nou user
-    @PostMapping
+
     public User addUser(@RequestBody User user) {
         return userRepository.save(user);
     }
 
-    @GetMapping("/{email}")
+
     public Optional<User> getUserByEmail(@PathVariable String email) {
         return userRepository.findByEmail(email);
     }
 
-    @GetMapping
+
     public Optional<User> getUserById(@PathVariable String id) {
         return userRepository.findById(id);
     }
 
     // DELETE: șterge un user după id
-    @DeleteMapping("/{id}")
+
     public void deleteUser(@PathVariable String id) {
         userRepository.deleteById(id);
     }
