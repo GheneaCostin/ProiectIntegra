@@ -15,17 +15,21 @@ public class UserDetails {
     private int weight;
     private String sex;
     private String extrainfo;
+    private String firstName;
+    private String lastName;
 
     public UserDetails() {
     }
 
-    public UserDetails(String userId, int age, int height, int weight, String sex, String extrainfo) {
+    public UserDetails(String userId, int age, int height, int weight, String sex, String extrainfo, String firstName, String lastName) {
         this.userId = userId;
         this.age = age;
         this.height = height;
         this.weight = weight;
         this.sex = sex;
         this.extrainfo = extrainfo;
+        this.firstName = firstName;
+        this.lastName = lastName;
 
     }
 
@@ -48,6 +52,12 @@ public class UserDetails {
 
     public void setExtrainfo(String extrainfo) {this.extrainfo = extrainfo;}
     public String getExtrainfo() {return extrainfo;}
+
+    public void setFirstName(String firstName) {this.firstName = firstName;}
+    public String getFirstName() {return firstName;}
+
+    public void setLastName(String lastName) {this.lastName = lastName;}
+    public String getLastName() {return lastName;}
 
 
 }
