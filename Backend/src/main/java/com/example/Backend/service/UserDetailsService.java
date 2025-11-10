@@ -42,5 +42,10 @@ public class UserDetailsService {
         userDetailsRepository.deleteById(id);
     }
 
+    public List<UserDetails> searchPatients(String name) {
+        return userDetailsRepository.findByFirstNameContainingOrLastNameContaining(name,name);
+    }
+
+
 }
 

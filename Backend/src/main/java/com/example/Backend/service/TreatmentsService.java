@@ -34,5 +34,8 @@ public class TreatmentsService {
     public void deleteTreatment(String id) {
         treatmentsRepository.deleteById(id);
     }
+    public List<Treatments> searchTreatmentsByName(String medicationName) {
+        return treatmentsRepository.findBymedicationNameIgnoreCase(medicationName);
+    }
 
 }

@@ -2,6 +2,7 @@ package com.example.Backend.controller;
 
 
 import com.example.Backend.models.Treatments;
+import com.example.Backend.models.UserDetails;
 import com.example.Backend.service.TreatmentsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,11 @@ public class TreatmentController {
     @DeleteMapping("/{id}")
     public void deleteTreatment(@PathVariable String id) {
         treatmentsService.deleteTreatment(id);
+    }
+
+    @GetMapping("/search")
+    public List<Treatments> searchTreatments(@RequestParam String name) {
+        return treatmentsService.searchTreatmentsByName(name);
     }
 
 }
