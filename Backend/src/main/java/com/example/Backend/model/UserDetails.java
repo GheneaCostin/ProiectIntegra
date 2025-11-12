@@ -1,4 +1,4 @@
-package com.example.Backend.models;
+package com.example.Backend.model;
 
 
 import org.springframework.data.annotation.Id;

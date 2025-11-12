@@ -1,8 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.JWT.JwtUtil;
-import com.example.Backend.models.User;
-import com.example.Backend.repository.UserRepository;
+import com.example.Backend.model.User;
 import com.example.Backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.example.Backend.controller;
 
 
-import com.example.Backend.models.UserDetails;
+import com.example.Backend.model.UserDetails;
 import com.example.Backend.service.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
