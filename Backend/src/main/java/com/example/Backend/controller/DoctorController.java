@@ -1,10 +1,9 @@
 package com.example.Backend.controller;
 
 
-import com.example.Backend.models.Treatments;
-import com.example.Backend.models.User;
+import com.example.Backend.model.Treatment;
+import com.example.Backend.model.User;
 import com.example.Backend.service.DoctorService;
-import com.example.Backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +33,13 @@ public class DoctorController {
     }
 
     @PostMapping
-    public ResponseEntity<?> prescribeTreatment(HttpServletRequest request, @RequestBody Treatments treatments) {
+    public ResponseEntity<?> prescribeTreatment(HttpServletRequest request, @RequestBody Treatment treatment) {
         String role = (String) request.getAttribute("role");
         if (!"doctor".equalsIgnoreCase(role)) {
             String message = "Access denied.";
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
         }
-        service.addTreatmentToPatient(treatments);
+        service.addTreatmentToPatient(treatment);
         String message = "Treatment prescribed successfully.";
         return ResponseEntity.ok(message);
     }

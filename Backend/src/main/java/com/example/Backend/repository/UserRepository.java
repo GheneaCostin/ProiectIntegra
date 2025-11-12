@@ -1,7 +1,7 @@
 package com.example.Backend.repository;
 
 
-import com.example.Backend.models.User;
+import com.example.Backend.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

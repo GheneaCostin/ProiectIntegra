@@ -1,8 +1,7 @@
 package com.example.Backend.controller;
 
 
-import com.example.Backend.models.Treatments;
-import com.example.Backend.models.UserDetails;
+import com.example.Backend.model.Treatment;
 import com.example.Backend.service.TreatmentsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +19,17 @@ public class TreatmentController {
     }
 
     @GetMapping("/id/{id}")
-    public Optional<Treatments> getTreatmentById(@PathVariable String id) {
+    public Optional<Treatment> getTreatmentById(@PathVariable String id) {
         return Optional.ofNullable(treatmentsService.getTreatmentById(id));
     }
 
     @GetMapping
-    public List<Treatments> getAllTreatments() {
+    public List<Treatment> getAllTreatments() {
         return treatmentsService.getAllTreatments();
     }
 
     @PostMapping
-    public Treatments addTreatment(@RequestBody Treatments treatment) {
+    public Treatment addTreatment(@RequestBody Treatment treatment) {
         return treatmentsService.addTreatment(treatment);
     }
 
@@ -40,7 +39,7 @@ public class TreatmentController {
     }
 
     @GetMapping("/search")
-    public List<Treatments> searchTreatments(@RequestParam String name) {
+    public List<Treatment> searchTreatments(@RequestParam String name) {
         return treatmentsService.searchTreatmentsByName(name);
     }
 

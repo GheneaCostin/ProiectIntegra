@@ -1,6 +1,6 @@
 package com.example.Backend.controller;
 
-import com.example.Backend.models.User;
+import com.example.Backend.model.User;
 import com.example.Backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 

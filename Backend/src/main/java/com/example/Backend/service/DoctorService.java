@@ -1,9 +1,8 @@
 package com.example.Backend.service;
-import com.example.Backend.models.Treatments;
+import com.example.Backend.model.Treatment;
 import com.example.Backend.repository.TreatmentsRepository;
 import  com.example.Backend.repository.UserRepository;
-import com.example.Backend.models.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.Backend.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -13,16 +12,20 @@ import java.util.stream.Collectors;
 @Service
 public class DoctorService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TreatmentsRepository treatmentsRepository;
+    private final UserRepository userRepository;
+    private final TreatmentsRepository treatmentsRepository;
+
+    public DoctorService(UserRepository userRepository,
+                         TreatmentsRepository treatmentsRepository) {
+        this.userRepository = userRepository;
+        this.treatmentsRepository = treatmentsRepository;
+    }
 
     public List<User> getAllPatients() {
         return userRepository.findAll().stream().filter(user -> user.getRole().equals("Pacient")).collect(Collectors.toList());
     }
 
-    public Treatments addTreatmentToPatient(@RequestBody Treatments treatment) {
+    public Treatment addTreatmentToPatient(@RequestBody Treatment treatment) {
        return treatmentsRepository.save(treatment);
     }
 
