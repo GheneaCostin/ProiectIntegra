@@ -12,7 +12,8 @@ public class Treatments {
     private String medicationName;
     private String dosage;
     private int frequency;
-
+    private String patientId;
+    private String doctorId;
     public Treatments() {}
 
     public Treatments(String medicationName, String dosage, int frequency) {
