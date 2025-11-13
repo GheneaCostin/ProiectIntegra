@@ -29,7 +29,7 @@ public class RefreshTokenService {
     }
     public void deleteRefreshToken(String token) {
         Optional<RefreshToken> rt = refreshTokenRepository.findByToken(token);
-        rt.ifPresent(refreshTokenRepository::delete);
+        refreshTokenRepository.deleteByToken(token);
     }
 
     public Optional<RefreshToken> findByToken(String token) {
