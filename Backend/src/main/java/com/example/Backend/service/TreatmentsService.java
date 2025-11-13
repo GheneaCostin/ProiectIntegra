@@ -16,7 +16,7 @@ public class TreatmentsService {
 
     public TreatmentsService(TreatmentsRepository treatmentsRepository) {
         this.treatmentsRepository = treatmentsRepository;
-    }
+    }   
 
 
     public List<Treatment> getAllTreatments() {
