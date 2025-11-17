@@ -3,21 +3,27 @@ package com.example.Backend.controller;
 
 import com.example.Backend.model.Treatment;
 import com.example.Backend.model.User;
+import com.example.Backend.model.UserDetails;
 import com.example.Backend.service.DoctorService;
+import com.example.Backend.service.UserDetailsService;
+import com.example.Backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/doctor")
 public class DoctorController {
 
     private final DoctorService service;
-
-    public DoctorController(DoctorService service) {
+    private final UserDetailsService userDetailsService;
+    public DoctorController(DoctorService service, UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
         this.service = service  ;
     }
 
@@ -29,7 +35,17 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
         }
         List<User> patients = service.getAllPatients();
-        return ResponseEntity.ok(patients);
+        List<UserDetails> patientDetailsList = new ArrayList<>();
+        for (User patient : patients) {
+            String userId = patient.getId();
+
+            Optional<UserDetails> userDetailsOptional = userDetailsService.getUserDetailsById(userId);
+
+            if (userDetailsOptional.isPresent()) {
+                patientDetailsList.add(userDetailsOptional.get());
+            }
+        }
+        return ResponseEntity.ok(patientDetailsList);
     }
 
     @PostMapping

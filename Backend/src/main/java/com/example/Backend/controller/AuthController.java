@@ -8,10 +8,7 @@ import com.example.Backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +29,7 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+    @CrossOrigin(origins = "http://localhost:3002")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String email = loginData.get("email");
@@ -73,4 +71,16 @@ public class AuthController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token invalid sau expirat.");
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        if (userService.getUserByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use.");
+        }
+        user.setRole("Pacient");
+        User newUser = userService.addUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    }
+
+
 }
