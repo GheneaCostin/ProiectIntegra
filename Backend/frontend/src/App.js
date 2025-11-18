@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import Login from "D:\\Apps\\ProiectIntegra\\ProiectIntegra\\ProiectIntegra\\Backend\\frontend\\src\\Login.js";
+import Dashboard from "D:\\Apps\\ProiectIntegra\\ProiectIntegra\\ProiectIntegra\\Backend\\frontend\\src\\Dashboard.js";
 
 function App() {
 
@@ -40,14 +41,7 @@ function App() {
         <div className="App">
             {
             }
-            <Login
-                email={email}
-                setEmail={setEmail}
-                password={password}
-                setPassword={setPassword}
-                handleLogin={handleLogin}
-                loading={loading}
-                error={error}
+            <Dashboard
             />
         </div>
     );
