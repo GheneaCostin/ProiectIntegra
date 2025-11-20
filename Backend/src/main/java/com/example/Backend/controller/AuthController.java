@@ -29,7 +29,7 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
-    @CrossOrigin(origins = "http://localhost:3002")
+    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String email = loginData.get("email");

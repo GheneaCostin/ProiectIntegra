@@ -22,7 +22,9 @@ public class DoctorService {
     }
 
     public List<User> getAllPatients() {
-        return userRepository.findAll().stream().filter(user -> user.getRole().equals("Pacient")).collect(Collectors.toList());
+        return userRepository.findByRole("patient")
+                .stream()
+                .collect(Collectors.toList());
     }
 
     public Treatment addTreatmentToPatient(@RequestBody Treatment treatment) {

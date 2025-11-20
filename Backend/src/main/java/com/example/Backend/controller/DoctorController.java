@@ -23,29 +23,24 @@ public class DoctorController {
     private final DoctorService service;
     private final UserDetailsService userDetailsService;
     public DoctorController(DoctorService service, UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+        this.userDetailsService  = userDetailsService;
         this.service = service  ;
     }
-
     @GetMapping("/patients")
-    public ResponseEntity<?> getPatients(HttpServletRequest request) {
+    public ResponseEntity<?> getAllPatients(HttpServletRequest request) {
         String role = (String) request.getAttribute("role");
-        if (!"doctor".equalsIgnoreCase(role)) {
-            String message = "Access denied.";
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
+
+        if (!"doctor".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Nu ai drepturi să accesezi această resursă!");
         }
+
         List<User> patients = service.getAllPatients();
-        List<UserDetails> patientDetailsList = new ArrayList<>();
-        for (User patient : patients) {
-            String userId = patient.getId();
-
-            Optional<UserDetails> userDetailsOptional = userDetailsService.getUserDetailsById(userId);
-
-            if (userDetailsOptional.isPresent()) {
-                patientDetailsList.add(userDetailsOptional.get());
-            }
+        if (patients.isEmpty()) {
+            return ResponseEntity.ok("Nu există pacienți în baza de date!");
         }
-        return ResponseEntity.ok(patientDetailsList);
+
+        return ResponseEntity.ok(patients);
     }
 
     @PostMapping
