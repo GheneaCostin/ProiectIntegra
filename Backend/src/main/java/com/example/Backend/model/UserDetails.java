@@ -38,6 +38,8 @@ public class UserDetails {
     public String getId() {return id;}
     public String getUserId() {return userId;}
 
+    public void setUserId(String userId) {this.userId = userId;}
+
     public void setAge(int age) {this.age = age;}
     public int getAge() {return age;}
 
