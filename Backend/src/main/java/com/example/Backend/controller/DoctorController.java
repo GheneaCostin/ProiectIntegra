@@ -1,12 +1,10 @@
 package com.example.Backend.controller;
 
-
 import com.example.Backend.model.Treatment;
 import com.example.Backend.model.User;
 import com.example.Backend.model.UserDetails;
 import com.example.Backend.service.DoctorService;
 import com.example.Backend.service.UserDetailsService;
-import com.example.Backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,37 +20,53 @@ public class DoctorController {
 
     private final DoctorService service;
     private final UserDetailsService userDetailsService;
-    public DoctorController(DoctorService service, UserDetailsService userDetailsService) {
-        this.userDetailsService  = userDetailsService;
-        this.service = service  ;
-    }
-    @GetMapping("/patients")
-    public ResponseEntity<?> getAllPatients(HttpServletRequest request) {
-        String role = (String) request.getAttribute("role");
 
-        if (!"doctor".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Nu ai drepturi să accesezi această resursă!");
+    public DoctorController(DoctorService service, UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+        this.service = service;
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+    @GetMapping("/patients")
+    public ResponseEntity<?> getPatients(HttpServletRequest request) {
+
+        String role = (String) request.getAttribute("role");
+        if (role != null && !"doctor".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
         }
+
 
         List<User> patients = service.getAllPatients();
-        if (patients.isEmpty()) {
-            return ResponseEntity.ok("Nu există pacienți în baza de date!");
+
+
+        List<UserDetails> combinedList = new ArrayList<>();
+
+        for (User user : patients) {
+
+            Optional<UserDetails> detailsOpt = userDetailsService.getUserDetailsById(user.getId());
+
+            if (detailsOpt.isPresent()) {
+
+                combinedList.add(detailsOpt.get());
+            } else {
+
+                UserDetails placeholder = new UserDetails();
+                placeholder.setUserId(user.getId());
+                placeholder.setFirstName(user.getEmail());
+                placeholder.setLastName("");
+                placeholder.setAge(0); // Sau null
+                placeholder.setSex("-");
+                placeholder.setExtrainfo("Fără detalii medicale completate.");
+                combinedList.add(placeholder);
+            }
         }
 
-        return ResponseEntity.ok(patients);
+        return ResponseEntity.ok(combinedList);
     }
 
     @PostMapping
     public ResponseEntity<?> prescribeTreatment(HttpServletRequest request, @RequestBody Treatment treatment) {
-        String role = (String) request.getAttribute("role");
-        if (!"doctor".equalsIgnoreCase(role)) {
-            String message = "Access denied.";
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
-        }
         service.addTreatmentToPatient(treatment);
-        String message = "Treatment prescribed successfully.";
-        return ResponseEntity.ok(message);
+        return ResponseEntity.ok("Treatment prescribed successfully.");
     }
-
 }

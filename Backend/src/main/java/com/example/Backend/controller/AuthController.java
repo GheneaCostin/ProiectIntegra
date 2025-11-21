@@ -38,18 +38,22 @@ public class AuthController {
         if (user == null || !user.getPassword().equals(password)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credențiale invalide");
         }
-        RefreshToken RefreshToken = refreshTokenService.createRefreshToken(user.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
         return ResponseEntity.ok(
 
                 Map.of(
                         "refreshToken",
-                        RefreshToken.getToken(),
+                        refreshToken.getToken(),
                         "token"
-                , token,
-                "role"
-                , user.getRole())
+                        , token,
+                        "role"
+                        , user.getRole(),
 
+                        // 🚨 CORECȚIA FINALĂ: Trimitem doar emailul doctorului
+                        "email",
+                        user.getEmail()
+                )
         );
     }
 
@@ -65,7 +69,7 @@ public class AuthController {
             refreshTokenService.deleteRefreshToken(refreshToken);
             return ResponseEntity.ok(Map.of("accessToken"
                     , newAccessToken
-                    , "RefreshToken",
+                    , "refreshToken",
                     newRefreshToken
             ));
         }
@@ -81,6 +85,4 @@ public class AuthController {
         User newUser = userService.addUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
-
-
 }
