@@ -1,11 +1,8 @@
 import React from 'react';
-// Link nu este necesar aici, deoarece PatientDetails nu navighează
+
 
 function PatientDetails({ patient }) {
-    // 🚨 NOTĂ: patient.name este construit în Dashboard.jsx (firstName + lastName)
-    // Câmpurile age, sex, weight, height, extrainfo vin direct din backend.
 
-    // Stilizarea este preluată din Dashboard.jsx
     return (
         <div style={{
             padding: '15px',
