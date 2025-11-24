@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Componentă separată pentru cardurile de statistică
 const StatCard = ({ title, value }) => {
     return (
         <div style={{

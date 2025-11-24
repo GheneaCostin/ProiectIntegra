@@ -23,21 +23,22 @@ export default function Navbar({ user, onLogout }) {
                 </Typography>
 
                 <Box className="navbar-links">
-
+                    {/* Link Dashboard - doar pentru doctori */}
                     {user?.loggedIn && user.role === "doctor" && (
                         <Button color="inherit" component={Link} to="/dashboard">
                             Dashboard
                         </Button>
                     )}
 
-
+                    {/* Link Treatments - doar pentru pacienți */}
                     {user?.loggedIn && user.role === "patient" && (
                         <Button color="inherit" component={Link} to="/treatments">
                             Treatments
                         </Button>
                     )}
 
-
+                    {/* 🎯 Link Prescribe GENERAL - doar pentru doctori */}
+                    {/* Acest buton duce la /prescribe (fără ID), activând dropdown-ul de pacienți */}
                     {user?.loggedIn && user.role === "doctor" && (
                         <Button color="inherit" component={Link} to="/prescribe">
                             Prescribe

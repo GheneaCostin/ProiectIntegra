@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { prescribeTreatment } from "./api/api";
+import { prescribeTreatment, getPatients } from "./api/api"; // Importăm și getPatients
+
+
+import {
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    TextField,
+    Button,
+    Typography,
+    Box,
+    Alert
+} from "@mui/material";
 
 const PrescriptionForm = () => {
     const { id } = useParams();
@@ -12,27 +25,44 @@ const PrescriptionForm = () => {
         medicationName: "",
         dosage: "",
         frequency: "",
-        duration: ""
+        duration: "",
+        notes: "" // 🎯 NOU: Câmp pentru note
     });
+
+    // State pentru lista de pacienți (pentru Dropdown)
+    const [patients, setPatients] = useState([]);
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [serverMessage, setServerMessage] = useState("");
+    const [serverMessage, setServerMessage] = useState({ type: "", text: "" });
 
-
+    // 1. Fetch la lista de pacienți la montare
     useEffect(() => {
-        const newErrors = {};
+        const fetchPatientsList = async () => {
+            try {
+                const data = await getPatients();
+                // Procesăm datele pentru a avea un nume complet afișabil
+                const processedPatients = Array.isArray(data) ? data.map(p => ({
+                    ...p,
+                    fullName: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email || "Pacient Fără Nume",
+                    // Folosim userId sau id ca valoare
+                    id: p.userId || p.id
+                })) : [];
+                setPatients(processedPatients);
+            } catch (error) {
+                console.error("Nu s-au putut încărca pacienții", error);
+            }
+        };
 
-        if (formData.medicationName && formData.medicationName.length < 3) {
-            newErrors.medicationName = "Numele medicamentului trebuie sa aiba minim 3 caractere.";
+        fetchPatientsList();
+    }, []);
+
+    // 2. Actualizăm ID-ul dacă se schimbă URL-ul
+    useEffect(() => {
+        if (id) {
+            setFormData(prev => ({ ...prev, patientId: id }));
         }
-
-        if (formData.frequency && (isNaN(formData.frequency) || Number(formData.frequency) <= 0)) {
-            newErrors.frequency = "Frecventa trebuie sa fie un numar pozitiv.";
-        }
-
-        setErrors(newErrors);
-    }, [formData]);
+    }, [id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -40,122 +70,144 @@ const PrescriptionForm = () => {
             ...formData,
             [name]: value
         });
-    };
 
+        // Curățăm erorile pe măsură ce scriem
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: "" }));
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (Object.keys(errors).length > 0 || !formData.medicationName || !formData.patientId) {
-            setServerMessage("Te rog corecteaaz erorile inainte de a trimite.");
+        if (!formData.patientId) {
+            setErrors({ patientId: "Trebuie selectat un pacient." });
             return;
         }
 
         setIsSubmitting(true);
-        setServerMessage("");
+        setServerMessage({ type: "", text: "" });
 
         try {
             await prescribeTreatment(formData);
             alert("Tratament prescris cu succes!");
             navigate("/dashboard");
         } catch (error) {
-            setServerMessage("Eroare la salvare: " + (error.response?.data || error.message));
+            setServerMessage({
+                type: "error",
+                text: "Eroare la salvare: " + (error.response?.data || error.message)
+            });
         } finally {
             setIsSubmitting(false);
         }
     };
 
-
-    const inputStyle = (fieldName) => ({
-        width: "100%",
-        padding: "10px",
-        margin: "5px 0",
-        borderRadius: "4px",
-        border: errors[fieldName] ? "2px solid red" : "1px solid #ccc",
-        boxSizing: "border-box"
-    });
-
     return (
-        <div style={{ maxWidth: "500px", margin: "50px auto", padding: "20px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)", borderRadius: "8px", backgroundColor: "white" }}>
-            <h2 style={{ textAlign: "center", color: "#2c3e50" }}>Prescrie Tratament</h2>
+        <Box sx={{ maxWidth: 500, margin: "50px auto", padding: 3, boxShadow: 3, borderRadius: 2, bgcolor: "white" }}>
+            <Typography variant="h5" sx={{ textAlign: "center", mb: 3, color: "#2c3e50" }}>
+                Prescrie Tratament
+            </Typography>
 
-            {serverMessage && <p style={{ color: serverMessage.includes("Eroare") ? "red" : "green", textAlign: "center" }}>{serverMessage}</p>}
+            {serverMessage.text && (
+                <Alert severity={serverMessage.type} sx={{ mb: 2 }}>
+                    {serverMessage.text}
+                </Alert>
+            )}
 
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: "15px" }}>
-                    <label>ID Pacient:</label>
-                    <input
-                        type="text"
+                {/* Selector Pacient */}
+                <FormControl fullWidth margin="normal" error={!!errors.patientId}>
+                    <InputLabel id="patient-label">Select Patient</InputLabel>
+                    <Select
+                        labelId="patient-label"
                         name="patientId"
                         value={formData.patientId}
                         onChange={handleChange}
-                        disabled={!!id}
-                        style={inputStyle("patientId")}
-                        required
-                    />
-                </div>
+                        label="Select Patient"
+                        disabled={!!id} // Dezactivat dacă ID-ul vine din URL
+                    >
+                        {patients.map(p => (
+                            <MenuItem key={p.id} value={p.id}>
+                                {p.fullName}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    {errors.patientId && <Typography variant="caption" color="error">{errors.patientId}</Typography>}
+                </FormControl>
 
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Medicament"
+                    name="medicationName"
+                    value={formData.medicationName}
+                    onChange={handleChange}
+                    placeholder="Ex: Paracetamol"
+                    required
+                    error={!!errors.medicationName}
+                    helperText={errors.medicationName}
+                />
 
-                <div style={{ marginBottom: "15px" }}>
-                    <label>Medicament:</label>
-                    <input
-                        type="text"
-                        name="medicationName"
-                        value={formData.medicationName}
-                        onChange={handleChange}
-                        style={inputStyle("medicationName")}
-                        placeholder="Ex: Paracetamol"
-                        required
-                    />
-                    {errors.medicationName && <span style={{ color: "red", fontSize: "0.8em" }}>{errors.medicationName}</span>}
-                </div>
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Dozaj"
+                    name="dosage"
+                    value={formData.dosage}
+                    onChange={handleChange}
+                    placeholder="Ex: 500mg"
+                    required
+                />
 
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Frecvență (pe zi)"
+                    name="frequency"
+                    type="number"
+                    value={formData.frequency}
+                    onChange={handleChange}
+                    placeholder="Ex: 3"
+                    required
+                    error={!!errors.frequency}
+                    helperText={errors.frequency}
+                />
 
-                <div style={{ marginBottom: "15px" }}>
-                    <label>Dozaj:</label>
-                    <input
-                        type="text"
-                        name="dosage"
-                        value={formData.dosage}
-                        onChange={handleChange}
-                        style={inputStyle("dosage")}
-                        placeholder="Ex: 500mg"
-                        required
-                    />
-                </div>
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Durata (zile)"
+                    name="duration"
+                    type="number"
+                    value={formData.duration}
+                    onChange={handleChange}
+                    placeholder="Ex: 7"
+                />
 
-                <div style={{ marginBottom: "15px" }}>
-                    <label>Frecvență (pe zi):</label>
-                    <input
-                        type="number"
-                        name="frequency"
-                        value={formData.frequency}
-                        onChange={handleChange}
-                        style={inputStyle("frequency")}
-                        placeholder="Ex: 3"
-                        required
-                    />
-                    {errors.frequency && <span style={{ color: "red", fontSize: "0.8em" }}>{errors.frequency}</span>}
-                </div>
+                {/* 🎯 NOU: Câmp pentru Note (Multiline) */}
+                <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Note / Observații"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Adăugați observații suplimentare..."
+                    multiline
+                    rows={4} // Face câmpul mai mare
+                />
 
-                <button
+                <Button
                     type="submit"
-                    disabled={isSubmitting || Object.keys(errors).length > 0}
-                    style={{
-                        width: "100%",
-                        padding: "12px",
-                        backgroundColor: isSubmitting ? "#ccc" : "#28a745",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: isSubmitting ? "not-allowed" : "pointer",
-                        fontWeight: "bold"
-                    }}
+                    variant="contained"
+                    color="success"
+                    fullWidth
+                    sx={{ mt: 3, py: 1.5, fontWeight: "bold" }}
+                    disabled={isSubmitting}
                 >
                     {isSubmitting ? "Se trimite..." : "Salvează Tratament"}
-                </button>
+                </Button>
             </form>
-        </div>
+        </Box>
     );
 };
 
