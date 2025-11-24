@@ -29,3 +29,10 @@ export const getPatients = async () => {
     const response = await axiosInstance.get("/doctor/patients");
     return response.data;
 };
+
+export const prescribeTreatment = async (treatmentData) => {
+    // Endpoint-ul din DoctorController este POST /api/doctor (mapat implicit pe clasa sau metoda)
+    // Verificați DoctorController: @PostMapping public ResponseEntity<?> prescribeTreatment...
+    const response = await axiosInstance.post("/doctor", treatmentData);
+    return response.data;
+};

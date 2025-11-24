@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
+import PrescriptionForm from "./PrescriptionForm";
 import NavBar from "./Navbar";
 import {useState} from "react";
 function App() {
@@ -19,6 +20,10 @@ function App() {
                            "/login" element={<Login setUser={setUser}/>} />
                 <Route path=
                            "/dashboard" element={<Dashboard />} />
+                <Route
+                    path="/prescribe/:id" element={<PrescriptionForm />}/>
+                <Route
+                    path="/prescribe" element={<PrescriptionForm />}/>
             </Routes>
         </BrowserRouter>
     );
