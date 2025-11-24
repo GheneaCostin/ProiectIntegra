@@ -62,7 +62,7 @@ const PatientDetails = ({ patient }) => {
                 </div>
             </div>
 
-            {/* 3. Buton Acțiune Conectat */}
+
             <button
                 onClick={handlePrescribeClick} // Apelăm funcția la click
                 style={{
@@ -84,7 +84,7 @@ const PatientDetails = ({ patient }) => {
     );
 };
 
-// --- COMPONENTA PRINCIPALĂ DASHBOARD ---
+
 function Dashboard() {
     const [patients, setPatients] = useState([]);
     const [selectedPatient, setSelectedPatient] = useState(null);
@@ -203,7 +203,7 @@ function Dashboard() {
                     )}
                 </div>
 
-                {/* DETALII PACIENT (DREAPTA) */}
+
                 <div style={{ flex: 2, backgroundColor: 'white', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     {selectedPatient ? (
                         <PatientDetails patient={selectedPatient} />
