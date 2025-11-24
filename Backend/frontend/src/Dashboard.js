@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { getPatients } from "./api/api";
+import { useNavigate } from "react-router-dom";
 
 
 const PatientDetails = ({ patient }) => {
+    const navigate = useNavigate();
+
+
+    const handlePrescribeClick = () => {
+
+        const patientId = patient.userId || patient.id;
+        navigate(`/prescribe/${patientId}`);
+    };
 
     const detailLabelStyle = { color: '#666', fontSize: '0.9em', marginBottom: '5px' };
     const detailValueStyle = { fontSize: '1.1em', fontWeight: 'bold', color: '#333' };
 
     return (
         <div>
-            {}
+
             <div style={{ borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
-                {}
                 <h2 style={{ margin: 0, color: '#007bff' }}>{patient.firstName} {patient.lastName}</h2>
                 <p style={{ margin: '5px 0 0 0', color: '#888', fontSize: '0.9em' }}>
                     ID: {patient.userId || 'N/A'}
                 </p>
             </div>
 
-            {}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div>
                     <p style={detailLabelStyle}>Vârstă</p>
-                    {}
                     <p style={detailValueStyle}>{patient.age > 0 ? `${patient.age} ani` : '-'}</p>
                 </div>
                 <div>
@@ -39,7 +46,7 @@ const PatientDetails = ({ patient }) => {
                 </div>
             </div>
 
-            {/* Secțiunea Info Extra */}
+
             <div style={{ marginTop: '25px' }}>
                 <p style={{ ...detailLabelStyle, marginBottom: '10px' }}>Informații Suplimentare</p>
                 <div style={{
@@ -55,20 +62,22 @@ const PatientDetails = ({ patient }) => {
                 </div>
             </div>
 
-            {/* Buton Acțiune */}
-            <button style={{
-                marginTop: '30px',
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1em',
-                transition: 'background-color 0.2s'
-            }}>
+
+            <button
+                onClick={handlePrescribeClick} // Apelăm funcția la click
+                style={{
+                    marginTop: '30px',
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '1em',
+                    transition: 'background-color 0.2s'
+                }}>
                 Prescrie Tratament
             </button>
         </div>
@@ -95,7 +104,6 @@ function Dashboard() {
                     throw new Error("Formatul datelor de la server este incorect.");
                 }
 
-
                 const processedData = data.map((p, index) => ({
                     ...p,
                     uniqueKey: p.userId || index
@@ -113,7 +121,6 @@ function Dashboard() {
         fetchPatients();
     }, []);
 
-
     const filteredPatients = patients.filter(p => {
         const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
         return fullName.includes(search.toLowerCase());
@@ -125,12 +132,12 @@ function Dashboard() {
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
 
-            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', paddingBottom: '20px', borderBottom: '2px solid #f0f0f0' }}>
                 <div>
                     <h1 style={{ color: '#2c3e50', margin: 0, fontSize: '2em' }}>Dashboard Medical</h1>
                     <p style={{ color: '#7f8c8d', margin: '5px 0 0 0' }}>Bine ai venit, <span style={{color: '#007bff', fontWeight: 'bold'}}>{doctorEmail}</span></p>
                 </div>
+
                 <div style={{ textAlign: 'right' }}>
                     <span style={{ backgroundColor: '#e3f2fd', color: '#0d47a1', padding: '5px 10px', borderRadius: '20px', fontSize: '0.85em', fontWeight: 'bold' }}>
                         DOCTOR
@@ -138,7 +145,7 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* Carduri Statistici*/}
+
             <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
                 <div style={statCardStyle}>
                     <h3 style={statTitleStyle}>Total Pacienți</h3>
@@ -154,10 +161,8 @@ function Dashboard() {
                 </div>
             </div>
 
-
             <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', minHeight: '500px' }}>
-
-
+                {/* LISTA DE PACIENȚI (STÂNGA) */}
                 <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                     <div style={{ padding: '15px', borderBottom: '1px solid #eee', backgroundColor: '#fafafa' }}>
                         <input
@@ -198,6 +203,7 @@ function Dashboard() {
                     )}
                 </div>
 
+
                 <div style={{ flex: 2, backgroundColor: 'white', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                     {selectedPatient ? (
                         <PatientDetails patient={selectedPatient} />
@@ -213,7 +219,7 @@ function Dashboard() {
     );
 }
 
-
+// Stiluri simple pentru carduri
 const statCardStyle = {
     flex: 1,
     backgroundColor: 'white',

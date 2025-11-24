@@ -1,0 +1,30 @@
+.stat-card {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    min-width: 200px;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-title {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+    color: #007bff;
+}

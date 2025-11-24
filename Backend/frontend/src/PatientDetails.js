@@ -12,7 +12,6 @@ function PatientDetails({ patient }) {
             marginTop: '20px',
             border: '1px solid #e0e0e0'
         }}>
-            {/* Numele Pacientului */}
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>{patient.name || "Nume Pacient"}</h3>
 
             {/* Detaliile Pacientului (Conform Structurii MongoDB) */}
@@ -22,7 +21,6 @@ function PatientDetails({ patient }) {
             <p style={{ margin: '5px 0' }}>**Înălțime:** {patient.height || 'N/A'} cm</p>
             <p style={{ margin: '10px 0' }}>**Extra Info:** {patient.extrainfo || 'Niciun comentariu'}</p>
 
-            {/* Buton de Acțiune */}
             <button style={{
                 backgroundColor: '#007bff',
                 color: 'white',
