@@ -13,17 +13,17 @@ import {
     Typography,
     Box,
     Alert,
-    CircularProgress // Pentru indicatorul de încărcare
+    CircularProgress
 } from "@mui/material";
 
 const PrescriptionForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // Citim ID-ul doctorului din localStorage (pentru backend)
+
     const currentDoctorId = localStorage.getItem("userId") || "";
 
-    // 1. State pentru formular (Inițializăm TOATE câmpurile pentru a evita eroarea "uncontrolled")
+
     const [formData, setFormData] = useState({
         patientId: id || "",
         doctorId: currentDoctorId,
@@ -40,7 +40,7 @@ const PrescriptionForm = () => {
     const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [serverMessage, setServerMessage] = useState({ type: "", text: "" });
 
-    // 2. Fetch lista de pacienți la montare
+
     useEffect(() => {
         const fetchPatientsList = async () => {
             try {
@@ -117,8 +117,6 @@ const PrescriptionForm = () => {
         }
     };
 
-    // 🎯 NOU: Dacă lista de pacienți încă se încarcă, afișăm un spinner
-    // Acest lucru previne eroarea "Out of range" pentru că Select-ul nu se randează încă
     if (isLoadingPatients) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
