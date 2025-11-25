@@ -31,6 +31,6 @@ export const getPatients = async () => {
 };
 
 export const prescribeTreatment = async (treatmentData) => {
-    const response = await axiosInstance.post("/doctor", treatmentData);
+    const response = await axiosInstance.post("/doctor/addTreatment", treatmentData);
     return response.data;
 };

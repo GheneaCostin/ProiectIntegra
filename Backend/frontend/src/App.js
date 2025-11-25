@@ -53,11 +53,6 @@ function App() {
                     />
 
                     <Route
-                        path="/prescribe/:id"
-                        element={<PrescriptionForm />}
-                    />
-
-                    <Route
                         path="/prescribe"
                         element={<PrescriptionForm />}
                     />

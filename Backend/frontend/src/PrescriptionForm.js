@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { prescribeTreatment, getPatients } from "./api/api"; // Importăm și getPatients
+import { prescribeTreatment, getPatients } from "./api/api";
 
-
+// Importuri Material UI
 import {
     FormControl,
     InputLabel,
@@ -12,52 +12,57 @@ import {
     Button,
     Typography,
     Box,
-    Alert
+    Alert,
+    CircularProgress // Pentru indicatorul de încărcare
 } from "@mui/material";
 
 const PrescriptionForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
+    // Citim ID-ul doctorului din localStorage (pentru backend)
+    const currentDoctorId = localStorage.getItem("userId") || "";
 
+    // 1. State pentru formular (Inițializăm TOATE câmpurile pentru a evita eroarea "uncontrolled")
     const [formData, setFormData] = useState({
         patientId: id || "",
+        doctorId: currentDoctorId,
         medicationName: "",
         dosage: "",
         frequency: "",
         duration: "",
-        notes: "" // 🎯 NOU: Câmp pentru note
+        notes: ""
     });
 
-    // State pentru lista de pacienți (pentru Dropdown)
     const [patients, setPatients] = useState([]);
-
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [serverMessage, setServerMessage] = useState({ type: "", text: "" });
 
-    // 1. Fetch la lista de pacienți la montare
+    // 2. Fetch lista de pacienți la montare
     useEffect(() => {
         const fetchPatientsList = async () => {
             try {
                 const data = await getPatients();
-                // Procesăm datele pentru a avea un nume complet afișabil
                 const processedPatients = Array.isArray(data) ? data.map(p => ({
                     ...p,
                     fullName: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.email || "Pacient Fără Nume",
-                    // Folosim userId sau id ca valoare
                     id: p.userId || p.id
                 })) : [];
                 setPatients(processedPatients);
             } catch (error) {
                 console.error("Nu s-au putut încărca pacienții", error);
+            } finally {
+                // 🎯 IMPORTANT: Oprim încărcarea doar după ce avem datele
+                setIsLoadingPatients(false);
             }
         };
 
         fetchPatientsList();
     }, []);
 
-    // 2. Actualizăm ID-ul dacă se schimbă URL-ul
+    // 3. Actualizăm ID-ul dacă se schimbă URL-ul
     useEffect(() => {
         if (id) {
             setFormData(prev => ({ ...prev, patientId: id }));
@@ -71,7 +76,6 @@ const PrescriptionForm = () => {
             [name]: value
         });
 
-        // Curățăm erorile pe măsură ce scriem
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: "" }));
         }
@@ -87,19 +91,41 @@ const PrescriptionForm = () => {
         setIsSubmitting(true);
         setServerMessage({ type: "", text: "" });
 
+        // Convertim frecvența la număr pentru backend
+        const payload = {
+            ...formData,
+            frequency: parseInt(formData.frequency) || 0
+        };
+
         try {
-            await prescribeTreatment(formData);
+            await prescribeTreatment(payload);
             alert("Tratament prescris cu succes!");
             navigate("/dashboard");
         } catch (error) {
+            let errorMessage = "Eroare necunoscută.";
+            if (error.response && error.response.data) {
+                errorMessage = typeof error.response.data === 'string'
+                    ? error.response.data
+                    : JSON.stringify(error.response.data);
+            }
             setServerMessage({
                 type: "error",
-                text: "Eroare la salvare: " + (error.response?.data || error.message)
+                text: "Eroare la salvare: " + errorMessage
             });
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    // 🎯 NOU: Dacă lista de pacienți încă se încarcă, afișăm un spinner
+    // Acest lucru previne eroarea "Out of range" pentru că Select-ul nu se randează încă
+    if (isLoadingPatients) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{ maxWidth: 500, margin: "50px auto", padding: 3, boxShadow: 3, borderRadius: 2, bgcolor: "white" }}>
@@ -123,7 +149,7 @@ const PrescriptionForm = () => {
                         value={formData.patientId}
                         onChange={handleChange}
                         label="Select Patient"
-                        disabled={!!id} // Dezactivat dacă ID-ul vine din URL
+                        disabled={!!id}
                     >
                         {patients.map(p => (
                             <MenuItem key={p.id} value={p.id}>
@@ -183,7 +209,6 @@ const PrescriptionForm = () => {
                     placeholder="Ex: 7"
                 />
 
-                {/* 🎯 NOU: Câmp pentru Note (Multiline) */}
                 <TextField
                     fullWidth
                     margin="normal"
@@ -193,7 +218,7 @@ const PrescriptionForm = () => {
                     onChange={handleChange}
                     placeholder="Adăugați observații suplimentare..."
                     multiline
-                    rows={4} // Face câmpul mai mare
+                    rows={4}
                 />
 
                 <Button

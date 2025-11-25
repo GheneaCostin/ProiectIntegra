@@ -33,6 +33,8 @@ function Login({ onLoginSuccess }) {
             localStorage.setItem("token", data.token);
             localStorage.setItem("refreshToken", data.refreshToken);
             localStorage.setItem("doctorEmail", data.email || email);
+            localStorage.setItem("userRole", data.role);
+            localStorage.setItem("userId", data.userId);
 
 
             if (typeof onLoginSuccess === 'function') {

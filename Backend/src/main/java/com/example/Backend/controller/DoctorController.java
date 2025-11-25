@@ -64,7 +64,7 @@ public class DoctorController {
         return ResponseEntity.ok(combinedList);
     }
 
-    @PostMapping
+    @PostMapping("/addTreatment")
     public ResponseEntity<?> prescribeTreatment(HttpServletRequest request, @RequestBody Treatment treatment) {
         service.addTreatmentToPatient(treatment);
         return ResponseEntity.ok("Treatment prescribed successfully.");

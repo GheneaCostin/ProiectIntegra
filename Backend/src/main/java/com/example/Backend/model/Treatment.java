@@ -14,6 +14,8 @@ public class Treatment {
     private int frequency;
     private String patientId;
     private String doctorId;
+    private String notes;
+    private String duration;
     public Treatment() {}
 
     public Treatment(String medicationName, String dosage, int frequency) {
@@ -23,6 +25,9 @@ public class Treatment {
     }
 
     public String getId() { return id; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 
     public String getMedicationName() { return medicationName; }
     public void setMedicationName(String medicationName) { this.medicationName = medicationName;}

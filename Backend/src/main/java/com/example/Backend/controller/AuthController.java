@@ -52,7 +52,10 @@ public class AuthController {
 
                         // 🚨 CORECȚIA FINALĂ: Trimitem doar emailul doctorului
                         "email",
-                        user.getEmail()
+                        user.getEmail(),
+
+                        "userId",
+                        user.getId()
                 )
         );
     }
