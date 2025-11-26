@@ -10,4 +10,7 @@ public interface TreatmentsRepository extends MongoRepository<Treatment,String> 
 
     List<Treatment> findByPatientId(String patientId);
 
+    List<Treatment> findByDoctorId(String doctorId);
 }
+
+

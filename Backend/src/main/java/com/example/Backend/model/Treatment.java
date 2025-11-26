@@ -26,6 +26,15 @@ public class Treatment {
 
     public String getId() { return id; }
 
+    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
+    public String getDoctorId() { return doctorId; }
+
+    public String getPatientId() { return patientId; }
+    public void setPatientId(String patientId) { this.patientId = patientId; }
+
+    public String getDuration() { return duration; }
+    public void setDuration(String duration) { this.duration = duration; }
+
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
 

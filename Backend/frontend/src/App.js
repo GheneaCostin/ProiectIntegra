@@ -5,6 +5,7 @@ import Login from "./Login";
 import Dashboard from "./Dashboard";
 import NavBar from "./Navbar";
 import PrescriptionForm from "./PrescriptionForm";
+import TreatmentsList from "./TreatmentsList";
 
 function App() {
     const [user, setUser] = useState({
@@ -12,7 +13,7 @@ function App() {
         role: null,
     });
 
-    // 🚨 NOU: Efect pentru restaurarea sesiunii la refresh
+
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("userRole");
@@ -56,6 +57,12 @@ function App() {
                         path="/prescribe"
                         element={<PrescriptionForm />}
                     />
+
+                    <Route
+                        path="/treatments"
+                        element={<TreatmentsList />}
+                    />
+
                 </Routes>
             </div>
         </BrowserRouter>

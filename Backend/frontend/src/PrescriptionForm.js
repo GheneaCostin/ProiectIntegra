@@ -54,7 +54,6 @@ const PrescriptionForm = () => {
             } catch (error) {
                 console.error("Nu s-au putut încărca pacienții", error);
             } finally {
-                // 🎯 IMPORTANT: Oprim încărcarea doar după ce avem datele
                 setIsLoadingPatients(false);
             }
         };
