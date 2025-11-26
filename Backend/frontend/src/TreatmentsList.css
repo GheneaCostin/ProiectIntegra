@@ -1,0 +1,83 @@
+.treatments-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.treatments-header {
+    color: #2c3e50;
+    font-weight: bold;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.treatment-card {
+    height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+}
+
+.treatment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.treatment-title {
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.treatment-detail {
+    margin-bottom: 6px;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.treatment-notes {
+    margin-top: 12px;
+    font-style: italic;
+    color: #777;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.treatment-meta {
+    margin-top: 15px;
+    color: #999;
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.no-treatments {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    font-size: 1.1rem;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.error-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 15px;
+    background-color: #fdeded;
+    color: #5f2120;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}

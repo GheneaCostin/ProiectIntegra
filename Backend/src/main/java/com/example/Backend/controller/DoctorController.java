@@ -4,6 +4,7 @@ import com.example.Backend.model.Treatment;
 import com.example.Backend.model.User;
 import com.example.Backend.model.UserDetails;
 import com.example.Backend.service.DoctorService;
+import com.example.Backend.service.TreatmentsService;
 import com.example.Backend.service.UserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,12 @@ public class DoctorController {
 
     private final DoctorService service;
     private final UserDetailsService userDetailsService;
+    private final TreatmentsService treatmentsService;
 
-    public DoctorController(DoctorService service, UserDetailsService userDetailsService) {
+    public DoctorController(DoctorService service, UserDetailsService userDetailsService, TreatmentsService treatmentsService) {
         this.userDetailsService = userDetailsService;
         this.service = service;
+        this.treatmentsService = treatmentsService;
     }
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
@@ -69,4 +72,11 @@ public class DoctorController {
         service.addTreatmentToPatient(treatment);
         return ResponseEntity.ok("Treatment prescribed successfully.");
     }
+
+    @GetMapping("/treatments/{doctorId}")
+    public ResponseEntity<List<Treatment>> getTreatmentsByDoctor(@PathVariable String doctorId) {
+        List<Treatment> treatments = treatmentsService.getTreatmentsByDoctorId(doctorId);
+        return ResponseEntity.ok(treatments);
+    }
+
 }

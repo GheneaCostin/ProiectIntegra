@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getPatients } from "./api/api";
 import { useNavigate } from "react-router-dom";
-import StatCard from "./StatCard"; // Importăm componenta StatCard
-import "./Dashboard.css"; // Importăm CSS-ul
+import StatCard from "./StatCard";
+import "./Dashboard.css";
 
-// --- COMPONENTA PENTRU DETALII PACIENT (DREAPTA) ---
+
 const PatientDetails = ({ patient }) => {
     const navigate = useNavigate();
 
@@ -50,7 +50,7 @@ const PatientDetails = ({ patient }) => {
                 </div>
             </div>
 
-            {/* Buton Acțiune */}
+
             <button
                 onClick={handlePrescribeClick}
                 className="prescribe-btn"
@@ -61,7 +61,7 @@ const PatientDetails = ({ patient }) => {
     );
 };
 
-// --- COMPONENTA PRINCIPALĂ DASHBOARD ---
+
 function Dashboard() {
     const [patients, setPatients] = useState([]);
     const [selectedPatient, setSelectedPatient] = useState(null);

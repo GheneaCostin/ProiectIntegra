@@ -45,4 +45,8 @@ public class TreatmentsService {
         return treatmentsRepository.findBymedicationNameIgnoreCase(medicationName);
     }
 
+    public List<Treatment> getTreatmentsByDoctorId(String doctorId) {
+        return treatmentsRepository.findByDoctorId(doctorId);
+    }
+
 }
