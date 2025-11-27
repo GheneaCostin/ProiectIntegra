@@ -135,8 +135,8 @@ const PrescriptionForm = () => {
                 frequency: "",
                 duration: "",
                 notes: "",
-                startDate: null,
-                endDate: null
+                startDate: "",
+                endDate: ""
             });
 
             setTimeout(() => setSuccessMessage(""), 3000);
