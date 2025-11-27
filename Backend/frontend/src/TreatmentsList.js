@@ -38,6 +38,12 @@ const TreatmentsList = () => {
         fetchTreatments();
     }, [doctorId]);
 
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleDateString('ro-RO');
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -90,6 +96,17 @@ const TreatmentsList = () => {
                                         <strong>Durată:</strong> {treatment.duration} zile
                                     </Typography>
 
+                                    <div style={{ marginTop: '10px', marginBottom: '10px', padding: '5px', backgroundColor: '#e3f2fd', borderRadius: '4px' }}>
+
+                                    <Typography variant="body2" className="treatment-detail" style={{ marginBottom: '2px' }}>
+                                        <strong>Start:</strong> {formatDate(treatment.startDate)}
+                                    </Typography>
+
+                                    <Typography variant="body2" className="treatment-detail">
+                                        <strong>Final:</strong> {formatDate(treatment.endDate)}
+                                    </Typography>
+
+                                    </div>
 
                                     <Typography variant="body2" className="treatment-notes" sx={{ fontStyle: 'italic', mt: 1 }}>
                                         <strong>Note:</strong> {treatment.notes || "Nicio notă"}

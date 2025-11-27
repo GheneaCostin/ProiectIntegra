@@ -16,6 +16,12 @@ import {
     CircularProgress
 } from "@mui/material";
 
+
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { ro } from 'date-fns/locale';
+
 const PrescriptionForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -30,7 +36,8 @@ const PrescriptionForm = () => {
         medicationName: "",
         dosage: "",
         frequency: "",
-        duration: "",
+        startDate: "",
+        endDate: "",
         notes: ""
     });
 
@@ -39,7 +46,7 @@ const PrescriptionForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingPatients, setIsLoadingPatients] = useState(true);
     const [serverMessage, setServerMessage] = useState({ type: "", text: "" });
-
+    const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
         const fetchPatientsList = async () => {
@@ -61,7 +68,7 @@ const PrescriptionForm = () => {
         fetchPatientsList();
     }, []);
 
-    // 3. Actualizăm ID-ul dacă se schimbă URL-ul
+
     useEffect(() => {
         if (id) {
             setFormData(prev => ({ ...prev, patientId: id }));
@@ -80,26 +87,61 @@ const PrescriptionForm = () => {
         }
     };
 
+    const handleDateChange = (name, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        if (name === 'startDate' && formData.endDate && value > formData.endDate) {
+            setFormData(prev => ({ ...prev, endDate: null }));
+        }
+    };
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.patientId) {
-            setErrors({ patientId: "Trebuie selectat un pacient." });
+        const newErrors = {};
+        if (!formData.patientId) newErrors.patientId = "Trebuie selectat un pacient.";
+        if (!formData.startDate) newErrors.startDate = "Data de inceput este obligatorie.";
+        if (!formData.endDate) newErrors.endDate = "Data de final este obligatorie.";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
         setIsSubmitting(true);
         setServerMessage({ type: "", text: "" });
 
-        // Convertim frecvența la număr pentru backend
+
         const payload = {
             ...formData,
-            frequency: parseInt(formData.frequency) || 0
+            frequency: parseInt(formData.frequency) || 0,
+            startDate: formData.startDate ? formData.startDate.toISOString() : null,
+            endDate: formData.endDate ? formData.endDate.toISOString() : null
         };
 
         try {
             await prescribeTreatment(payload);
+            setSuccessMessage("Prescription saved successfully");
             alert("Tratament prescris cu succes!");
-            navigate("/dashboard");
+
+            setFormData({
+                patientId: id || "",
+                doctorId: currentDoctorId,
+                medicationName: "",
+                dosage: "",
+                frequency: "",
+                duration: "",
+                notes: "",
+                startDate: null,
+                endDate: null
+            });
+
+            setTimeout(() => setSuccessMessage(""), 3000);
+
+
         } catch (error) {
             let errorMessage = "Eroare necunoscută.";
             if (error.response && error.response.data) {
@@ -125,112 +167,140 @@ const PrescriptionForm = () => {
     }
 
     return (
-        <Box sx={{ maxWidth: 500, margin: "50px auto", padding: 3, boxShadow: 3, borderRadius: 2, bgcolor: "white" }}>
-            <Typography variant="h5" sx={{ textAlign: "center", mb: 3, color: "#2c3e50" }}>
-                Prescrie Tratament
-            </Typography>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ro}>
+            <Box sx={{ maxWidth: 500, margin: "50px auto", padding: 3, boxShadow: 3, borderRadius: 2, bgcolor: "white" }}>
+                <Typography variant="h5" sx={{ textAlign: "center", mb: 3, color: "#2c3e50" }}>
+                    Prescrie Tratament
+                </Typography>
 
-            {serverMessage.text && (
-                <Alert severity={serverMessage.type} sx={{ mb: 2 }}>
-                    {serverMessage.text}
-                </Alert>
-            )}
+                {serverMessage.text && (
+                    <Alert severity={serverMessage.type} sx={{ mb: 2 }}>
+                        {serverMessage.text}
+                    </Alert>
+                )}
 
-            <form onSubmit={handleSubmit}>
-                {/* Selector Pacient */}
-                <FormControl fullWidth margin="normal" error={!!errors.patientId}>
-                    <InputLabel id="patient-label">Select Patient</InputLabel>
-                    <Select
-                        labelId="patient-label"
-                        name="patientId"
-                        value={formData.patientId}
+                <form onSubmit={handleSubmit}>
+                    <FormControl fullWidth margin="normal" error={!!errors.patientId}>
+                        <InputLabel id="patient-label">Select Patient</InputLabel>
+                        <Select
+                            labelId="patient-label"
+                            name="patientId"
+                            value={formData.patientId}
+                            onChange={handleChange}
+                            label="Select Patient"
+                            disabled={!!id}
+                        >
+                            {patients.map(p => (
+                                <MenuItem key={p.id} value={p.id}>
+                                    {p.fullName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        {errors.patientId && <Typography variant="caption" color="error">{errors.patientId}</Typography>}
+                    </FormControl>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Medicament"
+                        name="medicationName"
+                        value={formData.medicationName}
                         onChange={handleChange}
-                        label="Select Patient"
-                        disabled={!!id}
+                        placeholder="Ex: Paracetamol"
+                        required
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Dozaj"
+                        name="dosage"
+                        value={formData.dosage}
+                        onChange={handleChange}
+                        placeholder="Ex: 500mg"
+                        required
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Frecvență (pe zi)"
+                        name="frequency"
+                        type="number"
+                        value={formData.frequency}
+                        onChange={handleChange}
+                        placeholder="Ex: 3"
+                        required
+                    />
+
+
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 1 }}>
+                        <DatePicker
+                            label="Data Inceput"
+                            value={formData.startDate}
+                            onChange={(newValue) => handleDateChange('startDate', newValue)}
+                            disablePast
+                            format="dd/MM/yyyy"
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    required: true,
+                                    error: !!errors.startDate,
+                                    helperText: errors.startDate
+                                }
+                            }}
+                        />
+
+                        <DatePicker
+                            label="Data Final"
+                            value={formData.endDate}
+                            onChange={(newValue) => handleDateChange('endDate', newValue)}
+                            minDate={formData.startDate || new Date()}
+                            format="dd/MM/yyyy"
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    required: true,
+                                    error: !!errors.endDate,
+                                    helperText: errors.endDate
+                                }
+                            }}
+                        />
+                    </Box>
+
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Note / Observații"
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleChange}
+                        multiline
+                        rows={4}
+                    />
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="success"
+                        fullWidth
+                        sx={{ mt: 3, py: 1.5, fontWeight: "bold" }}
+                        disabled={isSubmitting}
                     >
-                        {patients.map(p => (
-                            <MenuItem key={p.id} value={p.id}>
-                                {p.fullName}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                    {errors.patientId && <Typography variant="caption" color="error">{errors.patientId}</Typography>}
-                </FormControl>
+                        {isSubmitting ? "Se trimite..." : "Salvează Tratament"}
+                    </Button>
 
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Medicament"
-                    name="medicationName"
-                    value={formData.medicationName}
-                    onChange={handleChange}
-                    placeholder="Ex: Paracetamol"
-                    required
-                    error={!!errors.medicationName}
-                    helperText={errors.medicationName}
-                />
+                    {successMessage && (
+                        <Alert severity="success" sx={{ mt: 2, textAlign: 'center' }}>
+                            {successMessage}
+                        </Alert>
+                    )}
 
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Dozaj"
-                    name="dosage"
-                    value={formData.dosage}
-                    onChange={handleChange}
-                    placeholder="Ex: 500mg"
-                    required
-                />
 
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Frecvență (pe zi)"
-                    name="frequency"
-                    type="number"
-                    value={formData.frequency}
-                    onChange={handleChange}
-                    placeholder="Ex: 3"
-                    required
-                    error={!!errors.frequency}
-                    helperText={errors.frequency}
-                />
-
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Durata (zile)"
-                    name="duration"
-                    type="number"
-                    value={formData.duration}
-                    onChange={handleChange}
-                    placeholder="Ex: 7"
-                />
-
-                <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Note / Observații"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder="Adăugați observații suplimentare..."
-                    multiline
-                    rows={4}
-                />
-
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="success"
-                    fullWidth
-                    sx={{ mt: 3, py: 1.5, fontWeight: "bold" }}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? "Se trimite..." : "Salvează Tratament"}
-                </Button>
-            </form>
-        </Box>
+                </form>
+            </Box>
+        </LocalizationProvider>
     );
 };
-
 export default PrescriptionForm;
