@@ -4,6 +4,8 @@ package com.example.Backend.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document(collection = "treatments")
 public class Treatment {
 
@@ -15,7 +17,8 @@ public class Treatment {
     private String patientId;
     private String doctorId;
     private String notes;
-    private String duration;
+    private Date startDate;
+    private Date endDate;
     public Treatment() {}
 
     public Treatment(String medicationName, String dosage, int frequency) {
@@ -32,8 +35,11 @@ public class Treatment {
     public String getPatientId() { return patientId; }
     public void setPatientId(String patientId) { this.patientId = patientId; }
 
-    public String getDuration() { return duration; }
-    public void setDuration(String duration) { this.duration = duration; }
+    public Date getStartDate() { return startDate; }
+    public void setStartDate(Date startDate) { this.startDate = startDate; }
+
+    public Date getEndDate() { return endDate; }
+    public void setEndDate(Date endDate) { this.endDate = endDate; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }

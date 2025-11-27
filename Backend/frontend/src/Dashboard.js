@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getPatients } from "./api/api";
+import {getPatients, getTreatmentsByDoctor} from "./api/api";
 import { useNavigate } from "react-router-dom";
 import StatCard from "./StatCard";
 import "./Dashboard.css";
@@ -68,8 +68,11 @@ function Dashboard() {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [activeTreatmentsCount, setActiveTreatmentsCount] = useState(0);
+
 
     const doctorEmail = localStorage.getItem("doctorEmail") || "Doctor";
+    const doctorId = localStorage.getItem("userId")
 
     useEffect(() => {
         const fetchPatients = async () => {
@@ -92,6 +95,14 @@ function Dashboard() {
                 });
 
                 setPatients(processedData);
+
+                if (doctorId) {
+                    const treatmentsData = await getTreatmentsByDoctor(doctorId);
+                    if (Array.isArray(treatmentsData)) {
+                        setActiveTreatmentsCount(treatmentsData.length);
+                    }
+                }
+
             } catch (err) {
                 console.error("Eroare la fetch:", err);
                 setError(err.message);
@@ -128,7 +139,7 @@ function Dashboard() {
             {/* Carduri Statistici */}
             <div className="stats-container">
                 <StatCard title="Total Pacienți" value={patients.length} />
-                <StatCard title="Tratamente Active" value="0" />
+                <StatCard title="Tratamente Active" value={activeTreatmentsCount} />
                 <StatCard title="Progres Mediu" value="0%" />
             </div>
 
