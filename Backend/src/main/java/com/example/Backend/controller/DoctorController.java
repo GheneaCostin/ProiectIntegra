@@ -1,8 +1,10 @@
 package com.example.Backend.controller;
 
+import com.example.Backend.dto.TreatmentDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.model.User;
 import com.example.Backend.model.UserDetails;
+import com.example.Backend.repository.UserDetailsRepository;
 import com.example.Backend.service.DoctorService;
 import com.example.Backend.service.TreatmentsService;
 import com.example.Backend.service.UserDetailsService;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/doctor")
@@ -22,11 +25,13 @@ public class DoctorController {
     private final DoctorService service;
     private final UserDetailsService userDetailsService;
     private final TreatmentsService treatmentsService;
+    private final UserDetailsRepository userDetailsRepository;
 
-    public DoctorController(DoctorService service, UserDetailsService userDetailsService, TreatmentsService treatmentsService) {
+    public DoctorController(DoctorService service, UserDetailsService userDetailsService, TreatmentsService treatmentsService, UserDetailsRepository userDetailsRepository) {
         this.userDetailsService = userDetailsService;
         this.service = service;
         this.treatmentsService = treatmentsService;
+        this.userDetailsRepository = userDetailsRepository;
     }
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
@@ -74,9 +79,13 @@ public class DoctorController {
     }
 
     @GetMapping("/treatments/{doctorId}")
-    public ResponseEntity<List<Treatment>> getTreatmentsByDoctor(@PathVariable String doctorId) {
-        List<Treatment> treatments = treatmentsService.getTreatmentsByDoctorId(doctorId);
-        return ResponseEntity.ok(treatments);
+    public ResponseEntity<List<TreatmentDTO>> getTreatmentsByDoctor(@PathVariable String doctorId) {
+        List<Treatment> rawTreatments = treatmentsService.getTreatmentsByDoctorId(doctorId);
+        List<TreatmentDTO> dtos = rawTreatments.stream()
+                .map(treatment -> new TreatmentDTO(treatment, userDetailsRepository))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
 }

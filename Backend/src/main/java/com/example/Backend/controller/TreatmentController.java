@@ -45,6 +45,8 @@ public class TreatmentController {
 
     @GetMapping("/user/{userId}")
     public List<Treatment> getTreatmentsByUser(@PathVariable String userId) {
+
+
         return treatmentsService.getTreatMentByUser(userId);
     }
 
