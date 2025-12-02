@@ -41,6 +41,7 @@ public class TreatmentsService {
     public void deleteTreatment(String id) {
         treatmentsRepository.deleteById(id);
     }
+
     public List<Treatment> searchTreatmentsByName(String medicationName) {
         return treatmentsRepository.findBymedicationNameIgnoreCase(medicationName);
     }
@@ -48,5 +49,18 @@ public class TreatmentsService {
     public List<Treatment> getTreatmentsByDoctorId(String doctorId) {
         return treatmentsRepository.findByDoctorId(doctorId);
     }
+
+    public Treatment updateTreatment(String id, Treatment updatedTreatment) {
+        return treatmentsRepository.findById(id).map(treatment -> {
+            treatment.setMedicationName(updatedTreatment.getMedicationName());
+            treatment.setDosage(updatedTreatment.getDosage());
+            treatment.setFrequency(updatedTreatment.getFrequency());
+            treatment.setNotes(updatedTreatment.getNotes());
+            treatment.setStartDate(updatedTreatment.getStartDate());
+            treatment.setEndDate(updatedTreatment.getEndDate());
+            return treatmentsRepository.save(treatment);
+        }).orElse(null);
+    }
+
 
 }

@@ -39,3 +39,13 @@ export const getTreatmentsByDoctor = async (doctorId) => {
     const response = await axiosInstance.get(`/doctor/treatments/${doctorId}`);
     return response.data;
 };
+
+export const updateTreatment = async (id, treatmentData) => {
+    const response = await axiosInstance.put(`treatments/${id}`, treatmentData);
+    return response.data;
+};
+
+export const deleteTreatment = async (id) => {
+    const response = await axiosInstance.delete(`treatments/${id}`);
+    return response.data;
+};
