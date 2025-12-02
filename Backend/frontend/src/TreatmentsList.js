@@ -170,9 +170,6 @@ const TreatmentsList = () => {
                                         <Typography variant="subtitle2" color="primary">
                                             Pacient: {treatment.patientFirstName ? `${treatment.patientFirstName} ${treatment.patientLastName}` : "Nume Indisponibil"}
                                         </Typography>
-                                        <Typography variant="caption" display="block" color="textSecondary">
-                                            ID: {treatment.patientId}
-                                        </Typography>
                                     </div>
 
 
