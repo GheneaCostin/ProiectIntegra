@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getTreatmentsByDoctor, updateTreatment, deleteTreatment } from "./api/api"; // Importăm funcțiile noi
+import { getTreatmentsByDoctor, updateTreatment, deleteTreatment } from "./api/api";
 import {
     Grid,
     CircularProgress,
@@ -12,6 +12,12 @@ import {
     TextField,
     Box
 } from "@mui/material";
+
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { ro } from 'date-fns/locale';
+
 import "./TreatmentsList.css";
 
 const TreatmentsList = () => {
@@ -68,7 +74,7 @@ const TreatmentsList = () => {
             await updateTreatment(selectedTreatment.id, selectedTreatment);
             setEditOpen(false);
             alert("Tratament actualizat cu succes!");
-            fetchTreatments(); // Reîncarcă lista pentru a vedea modificările
+            fetchTreatments();
         } catch (error) {
             console.error("Error updating treatment:", error);
             alert("Eroare la actualizarea tratamentului.");
@@ -81,7 +87,7 @@ const TreatmentsList = () => {
             try {
                 await deleteTreatment(id);
                 alert("Tratament șters cu succes!");
-                fetchTreatments(); // Reîncarcă lista
+                fetchTreatments();
             } catch (error) {
                 console.error("Error deleting treatment:", error);
                 alert("Eroare la ștergerea tratamentului.");
@@ -98,10 +104,27 @@ const TreatmentsList = () => {
         }));
     };
 
+    const handleDateChange = (name, newValue) => {
+        setSelectedTreatment(prev => ({
+            ...prev,
+            [name]: newValue ? newValue.toISOString() : null
+        }));
+
+
+        if (name === 'startDate' && selectedTreatment?.endDate) {
+            const endDateDate = new Date(selectedTreatment.endDate);
+            if (newValue && newValue > endDateDate) {
+                setSelectedTreatment(prev => ({ ...prev, endDate: null }));
+            }
+        }
+    };
+
+
     if (loading) return <div className="loading-container"><CircularProgress /></div>;
     if (error) return <div className="error-container"><Typography color="error">{error}</Typography></div>;
 
     return (
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ro}>
         <div className="treatments-container">
             <Typography variant="h4" component="h2" className="treatments-header" gutterBottom>
                 Istoric Tratamente Prescrise
@@ -146,9 +169,6 @@ const TreatmentsList = () => {
                                     <div className="treatment-meta" style={{ marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
                                         <Typography variant="subtitle2" color="primary">
                                             Pacient: {treatment.patientFirstName ? `${treatment.patientFirstName} ${treatment.patientLastName}` : "Nume Indisponibil"}
-                                        </Typography>
-                                        <Typography variant="caption" display="block" color="textSecondary">
-                                            ID: {treatment.patientId}
                                         </Typography>
                                     </div>
 
@@ -227,6 +247,24 @@ const TreatmentsList = () => {
                             }}
                             fullWidth
                         />
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <DatePicker
+                                label="Data Început"
+                                value={selectedTreatment?.startDate ? new Date(selectedTreatment.startDate) : null}
+                                onChange={(newValue) => handleDateChange('startDate', newValue)}
+                                format="dd/MM/yyyy"
+                                slotProps={{ textField: { fullWidth: true } }}
+                            />
+                            <DatePicker
+                                label="Data Final"
+                                value={selectedTreatment?.endDate ? new Date(selectedTreatment.endDate) : null}
+                                onChange={(newValue) => handleDateChange('endDate', newValue)}
+                                minDate={selectedTreatment?.startDate ? new Date(selectedTreatment.startDate) : null}
+                                format="dd/MM/yyyy"
+                                slotProps={{ textField: { fullWidth: true } }}
+                            />
+                        </Box>
+
                         <TextField
                             label="Note"
                             name="notes"
@@ -236,7 +274,6 @@ const TreatmentsList = () => {
                             rows={3}
                             fullWidth
                         />
-
                     </Box>
                 </DialogContent>
                 <DialogActions>
@@ -245,6 +282,7 @@ const TreatmentsList = () => {
                 </DialogActions>
             </Dialog>
         </div>
+        </LocalizationProvider>
     );
 };
 
