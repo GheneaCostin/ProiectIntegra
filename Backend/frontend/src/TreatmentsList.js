@@ -41,7 +41,7 @@ const TreatmentsList = () => {
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const pageSize = 6;
+    const [pageSize, setPageSize] = useState(10);
 
     const doctorId = localStorage.getItem("userId");
 
@@ -54,7 +54,7 @@ const TreatmentsList = () => {
         }
 
         try {
-            const data = await getTreatmentsByDoctor(doctorId, page - 1, pageSize);
+            const data = await getTreatmentsByDoctor(doctorId, page , pageSize);
             const treatmentsList = data.content || [];
             setTreatments(treatmentsList);
             setTotalPages(data.totalPages);

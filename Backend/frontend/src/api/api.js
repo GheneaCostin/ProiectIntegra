@@ -46,7 +46,7 @@ export const deleteTreatment = async (id) => {
     return response.data;
 };
 
-export const getTreatmentsByDoctor = async (doctorId, page = 0, size = 6) => {
+export const getTreatmentsByDoctor = async (doctorId, page , size ) => {
     const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?page=${page}&size=${size}`);
     return response.data;
 };
