@@ -35,10 +35,6 @@ export const prescribeTreatment = async (treatmentData) => {
     return response.data;
 };
 
-export const getTreatmentsByDoctor = async (doctorId) => {
-    const response = await axiosInstance.get(`/doctor/treatments/${doctorId}`);
-    return response.data;
-};
 
 export const updateTreatment = async (id, treatmentData) => {
     const response = await axiosInstance.put(`treatments/${id}`, treatmentData);
@@ -47,5 +43,10 @@ export const updateTreatment = async (id, treatmentData) => {
 
 export const deleteTreatment = async (id) => {
     const response = await axiosInstance.delete(`treatments/${id}`);
+    return response.data;
+};
+
+export const getTreatmentsByDoctor = async (doctorId, page , size ) => {
+    const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?page=${page}&size=${size}`);
     return response.data;
 };

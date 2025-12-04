@@ -1,7 +1,10 @@
 package com.example.Backend.repository;
 
 import com.example.Backend.model.Treatment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 
 import java.util.List;
 
@@ -11,6 +14,9 @@ public interface TreatmentsRepository extends MongoRepository<Treatment,String> 
     List<Treatment> findByPatientId(String patientId);
 
     List<Treatment> findByDoctorId(String doctorId);
+
+    Page<Treatment> findByDoctorId(String doctorId, Pageable pageable);
 }
+
 
 

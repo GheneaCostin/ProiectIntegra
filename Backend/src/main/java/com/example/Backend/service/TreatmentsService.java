@@ -1,10 +1,13 @@
 package com.example.Backend.service;
 
 
+import com.example.Backend.dto.TreatmentDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.repository.UserDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +27,13 @@ public class TreatmentsService {
 
     public List<Treatment> getAllTreatments() {
         return treatmentsRepository.findAll();
+    }
+
+    public Page<TreatmentDTO> getTreatmentsByDoctorIdPaginated(String doctorId, Pageable pageable) {
+        Page<Treatment> treatmentsPage = treatmentsRepository.findByDoctorId(doctorId, pageable);
+
+        // Mapăm fiecare element din Page<Treatment> în Page<TreatmentDTO>
+        return treatmentsPage.map(treatment -> new TreatmentDTO(treatment, userDetailsRepository));
     }
 
     public Treatment getTreatmentById(String id) {
