@@ -14,7 +14,9 @@ import {
     Select,
     MenuItem,
     FormControl,
-    InputLabel
+    InputLabel,
+    Pagination,
+    Stack
 } from "@mui/material";
 
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
@@ -34,8 +36,12 @@ const TreatmentsList = () => {
     const [selectedTreatment, setSelectedTreatment] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("All");
     const [filteredTreatments, setFilteredTreatments] = useState([]);
+
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 6;
 
     const doctorId = localStorage.getItem("userId");
 
@@ -48,9 +54,11 @@ const TreatmentsList = () => {
         }
 
         try {
-            const data = await getTreatmentsByDoctor(doctorId);
-            setTreatments(data);
-            setFilteredTreatments(data);
+            const data = await getTreatmentsByDoctor(doctorId, page - 1, pageSize);
+            const treatmentsList = data.content || [];
+            setTreatments(treatmentsList);
+            setTotalPages(data.totalPages);
+            setFilteredTreatments(treatmentsList);
         } catch (err) {
             setError("Eroare la încărcarea tratamentelor.");
             console.error(err);
@@ -61,7 +69,7 @@ const TreatmentsList = () => {
 
     useEffect(() => {
         fetchTreatments();
-    }, [doctorId]);
+    }, [doctorId, page]);
 
     const applyFilters = () => {
         let result = treatments;
@@ -186,6 +194,10 @@ const TreatmentsList = () => {
         setFilterStatus(e.target.value);
     };
 
+    const handlePageChange = (event, value) => {
+        setPage(value);
+    };
+
 
     if (loading) return <div className="loading-container"><CircularProgress/></div>;
     if (error) return <div className="error-container"><Typography color="error">{error}</Typography></div>;
@@ -290,6 +302,18 @@ const TreatmentsList = () => {
                             </Grid>
                         ))}
                     </Grid>
+                )}
+
+                {totalPages > 1 && (
+                    <Stack spacing={2} alignItems="center" sx={{ marginTop: 4 }}>
+                        <Pagination
+                            count={totalPages}
+                            page={page}
+                            onChange={handlePageChange}
+                            color="primary"
+                            size="large"
+                        />
+                    </Stack>
                 )}
 
 

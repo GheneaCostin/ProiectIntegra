@@ -9,6 +9,9 @@ import com.example.Backend.service.DoctorService;
 import com.example.Backend.service.TreatmentsService;
 import com.example.Backend.service.UserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -78,14 +81,17 @@ public class DoctorController {
         return ResponseEntity.ok("Treatment prescribed successfully.");
     }
 
-    @GetMapping("/treatments/{doctorId}")
-    public ResponseEntity<List<TreatmentDTO>> getTreatmentsByDoctor(@PathVariable String doctorId) {
-        List<Treatment> rawTreatments = treatmentsService.getTreatmentsByDoctorId(doctorId);
-        List<TreatmentDTO> dtos = rawTreatments.stream()
-                .map(treatment -> new TreatmentDTO(treatment, userDetailsRepository))
-                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/treatments/{doctorId}")
+    public ResponseEntity<Page<TreatmentDTO>> getTreatmentsByDoctor(
+            @PathVariable String doctorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) { // 6 elemente pe pagină
+
+        Pageable pageable =     PageRequest.of(page, size);
+        Page<TreatmentDTO> treatmentsPage = treatmentsService.getTreatmentsByDoctorIdPaginated(doctorId, pageable);
+
+        return ResponseEntity.ok(treatmentsPage);
     }
 
 }
