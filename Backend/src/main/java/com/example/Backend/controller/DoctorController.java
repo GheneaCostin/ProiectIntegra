@@ -94,10 +94,11 @@ public class DoctorController {
         Pageable pageable = PageRequest.of(page, size);
 
 
-        Page<TreatmentDTO> treatmentsPage = treatmentsService.getTreatmentsByDoctorPaginatedFiltered(
+        Page<Treatment> treatmentsPage = treatmentsService.getTreatmentsByDoctorPaginatedFiltered(
                 doctorId, pageable, search, filter);
+        Page<TreatmentDTO> treatmentDTOPage = treatmentsPage.map(treatment -> new TreatmentDTO(treatment, userDetailsRepository));
 
-        return ResponseEntity.ok(treatmentsPage);
+        return ResponseEntity.ok(treatmentDTOPage);
     }
 
 }
