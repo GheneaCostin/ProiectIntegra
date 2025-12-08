@@ -86,10 +86,16 @@ public class DoctorController {
     public ResponseEntity<Page<TreatmentDTO>> getTreatmentsByDoctor(
             @PathVariable String doctorId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) { // 6 elemente pe pagină
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "All") String filter
+    ) {
 
-        Pageable pageable =     PageRequest.of(page, size);
-        Page<TreatmentDTO> treatmentsPage = treatmentsService.getTreatmentsByDoctorIdPaginated(doctorId, pageable);
+        Pageable pageable = PageRequest.of(page, size);
+
+
+        Page<TreatmentDTO> treatmentsPage = treatmentsService.getTreatmentsByDoctorPaginatedFiltered(
+                doctorId, pageable, search, filter);
 
         return ResponseEntity.ok(treatmentsPage);
     }
