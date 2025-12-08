@@ -5,11 +5,13 @@ import com.example.Backend.dto.TreatmentDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.repository.UserDetailsRepository;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -81,25 +83,13 @@ public class TreatmentsService {
         }).orElse(null);
     }
 
-    public Page<TreatmentDTO> getTreatmentsByDoctorPaginatedFiltered(
+    public Page<Treatment> getTreatmentsByDoctorPaginatedFiltered(
             String doctorId,
             Pageable pageable,
             String search,
             String filter) {
 
-        Query query = new Query();
-
-        query.addCriteria(Criteria.where("doctorId").is(doctorId));
-
-
-        if (search != null && !search.isEmpty()) {
-
-            String regex = ".*" + search.toLowerCase() + ".*";
-
-            query.addCriteria(Criteria.where("medicationName").regex(regex, "i"));
-
-
-        }
+        Criteria baseCriteria = Criteria.where("doctorId").is(doctorId);
 
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         Date todayDate = Date.from(todayStart.atZone(ZoneId.of("UTC")).toInstant());
@@ -108,35 +98,72 @@ public class TreatmentsService {
         if (filter != null && !filter.equalsIgnoreCase("All")) {
             switch (filter.toLowerCase()) {
                 case "active":
-
-                    query.addCriteria(Criteria.where("endDate").gt(todayDate));
+                    baseCriteria.and("endDate").gt(todayDate);
                     break;
                 case "ended":
-
-                    query.addCriteria(Criteria.where("endDate").lt(todayDate));
+                    baseCriteria.and("endDate").lt(todayDate);
                     break;
                 case "noend":
-
-                    query.addCriteria(new Criteria().orOperator(
+                    baseCriteria.orOperator(
                             Criteria.where("endDate").exists(false),
                             Criteria.where("endDate").is(null),
                             Criteria.where("endDate").is("")
-                    ));
+                    );
                     break;
             }
         }
 
 
-        long total = mongoTemplate.count(query, Treatment.class);
-        query.with(pageable);
-        List<Treatment> results = mongoTemplate.find(query, Treatment.class);
+        MatchOperation matchDoctor = Aggregation.match(baseCriteria);
+
+        LookupOperation lookupPatient = LookupOperation.newLookup()
+                .from("userDetails")
+                .localField("patientId")
+                .foreignField("userId")
+                .as("patient");
 
 
-        List<TreatmentDTO> dtos = results.stream()
-                .map(t -> new TreatmentDTO(t, userDetailsRepository))
-                .collect(Collectors.toList());
+        UnwindOperation unwindPatient = Aggregation.unwind("patient", true);
 
-        return new PageImpl<>(dtos, pageable, total);
+        Criteria searchCriteria = new Criteria();
+        if (search != null && !search.trim().isEmpty()) {
+            String regex = ".*" + search.toLowerCase() + ".*";
+
+            searchCriteria.orOperator(
+                    Criteria.where("medicationName").regex(regex, "i"),
+                    Criteria.where("patient.firstName").regex(regex, "i"),
+                    Criteria.where("patient.lastName").regex(regex, "i")
+            );
+        }
+        MatchOperation matchSearch = Aggregation.match(searchCriteria);
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchDoctor,
+                lookupPatient,
+                unwindPatient,
+                matchSearch,
+                Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()),
+                Aggregation.limit(pageable.getPageSize())
+        );
+
+        List<Treatment> results = mongoTemplate.aggregate(aggregation, "treatments", Treatment.class).getMappedResults();
+
+        Aggregation countAggregation = Aggregation.newAggregation(
+                matchDoctor,
+                lookupPatient,
+                unwindPatient,
+                matchSearch,
+                Aggregation.count().as("total")
+        );
+
+
+        AggregationResults<Document> countResults = mongoTemplate.aggregate(countAggregation, "treatments", Document.class);
+        Document countDoc = countResults.getUniqueMappedResult();
+        long total = countDoc != null ? countDoc.get("total", Number.class).longValue() : 0L;
+
+
+
+        return new PageImpl<>(results, pageable, total);
     }
 
 
