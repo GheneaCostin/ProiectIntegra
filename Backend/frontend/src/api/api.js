@@ -46,7 +46,21 @@ export const deleteTreatment = async (id) => {
     return response.data;
 };
 
-export const getTreatmentsByDoctor = async (doctorId, page , size ) => {
-    const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?page=${page}&size=${size}`);
+
+export const getTreatmentsByDoctor = async (doctorId, page,  size , search = "", filter = "All") => {
+
+    const params = new URLSearchParams();
+    params.append("page", page);
+    params.append("size", size);
+
+    if (search) {
+        params.append("search", search);
+    }
+
+    if (filter && filter !== "All") {
+        params.append("filter", filter);
+    }
+
+    const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?${params.toString()}`);
     return response.data;
 };

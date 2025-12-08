@@ -37,11 +37,11 @@ const TreatmentsList = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("All");
-    const [filteredTreatments, setFilteredTreatments] = useState([]);
+
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize,setPageSize] = useState(10);
 
     const doctorId = localStorage.getItem("userId");
 
@@ -54,12 +54,14 @@ const TreatmentsList = () => {
         }
 
         try {
-            const data = await getTreatmentsByDoctor(doctorId, page , pageSize);
+            setLoading(true);
+            const apiPage = page > 0 ? page - 1 : 0;
+            const data = await getTreatmentsByDoctor(doctorId, apiPage , pageSize , searchTerm, filterStatus);
             const treatmentsList = data.content || [];
             setTreatments(treatmentsList);
             setTotalPages(data.totalPages);
-            setFilteredTreatments(treatmentsList);
         } catch (err) {
+            console.error("Eroare la încărcarea tratamentelor:", err);
             setError("Eroare la încărcarea tratamentelor.");
             console.error(err);
         } finally {
@@ -68,58 +70,11 @@ const TreatmentsList = () => {
     };
 
     useEffect(() => {
-        fetchTreatments();
-    }, [doctorId, page]);
-
-    const applyFilters = () => {
-        let result = treatments;
-
-
-        if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase();
-            result = result.filter(t => {
-
-                const treatmentName = (t.treatmentName || t.medicationName || "").toLowerCase();
-                const patientName = `${t.patientFirstName || ""} ${t.patientLastName || ""}`.toLowerCase();
-
-                return treatmentName.includes(lowerTerm) || patientName.includes(lowerTerm);
-            });
-        }
-
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (filterStatus !== "All") {
-            result = result.filter(t => {
-
-                if (!t.endDate) {
-                    return filterStatus === "No End Date";
-                }
-
-                const endDate = new Date(t.endDate);
-                endDate.setHours(0, 0, 0, 0);
-
-                if (filterStatus === "Active") {
-                    return endDate >= today;
-                } else if (filterStatus === "Ended") {
-                    return endDate < today;
-                } else if (filterStatus === "No End Date") {
-                    return false;
-                }
-                return true;
-            });
-        }
-
-
-        setFilteredTreatments(result);
-    };
-
-
-    useEffect(() => {
-        applyFilters();
-    }, [searchTerm, filterStatus, treatments]);
-
+        const delayDebounceFn = setTimeout(() => {
+            fetchTreatments();
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [doctorId, page, searchTerm, filterStatus]);
 
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
@@ -188,10 +143,12 @@ const TreatmentsList = () => {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
+        setPage(1);
     };
 
     const handleFilterChange = (e) => {
         setFilterStatus(e.target.value);
+        setPage(1);
     };
 
     const handlePageChange = (event, value) => {
@@ -235,7 +192,7 @@ const TreatmentsList = () => {
                 </Box>
 
 
-                {filteredTreatments.length === 0 ? (
+                {treatments.length === 0 ? (
                     <div className="no-treatments">
                         <Typography variant="h6" color="textSecondary">
                             Nu s-au gasit tratamente conform criteriilor.
@@ -243,7 +200,7 @@ const TreatmentsList = () => {
                     </div>
                 ) : (
                     <Grid container spacing={3}>
-                        {filteredTreatments.map((treatment) => (
+                        {treatments.map((treatment) => (
                             <Grid item xs={12} sm={6} md={4} key={treatment.id}>
                                 <div className="treatment-card">
                                     <div style={{ padding: '20px' }}>
