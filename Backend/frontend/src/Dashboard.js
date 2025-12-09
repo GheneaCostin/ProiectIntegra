@@ -97,10 +97,14 @@ function Dashboard() {
                 setPatients(processedData);
 
                 if (doctorId) {
-                    const treatmentsData = await getTreatmentsByDoctor(doctorId);
-                    if (Array.isArray(treatmentsData)) {
+                    const treatmentsData = await getTreatmentsByDoctor(doctorId, 0, 1, "", "Active");
+
+                    if (treatmentsData && typeof treatmentsData.totalElements === 'number') {
+                        setActiveTreatmentsCount(treatmentsData.totalElements);
+                    } else if (Array.isArray(treatmentsData)) {
                         setActiveTreatmentsCount(treatmentsData.length);
                     }
+
                 }
 
             } catch (err) {
