@@ -18,23 +18,24 @@ function App() {
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("userRole");
-        const userEmail = localStorage.getItem("doctorEmail");
+        const doctorEmail = localStorage.getItem("doctorEmail");
+
         if (token && role) {
+            // Dacă avem token și rol salvate, considerăm utilizatorul autentificat
             setUser({
                 loggedIn: true,
                 role: role,
-                email: userEmail,
+                email: doctorEmail,
             });
         }
-    }, []);
+    }, []); // Se execută o singură dată la montarea aplicației
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("doctorEmail");
         localStorage.removeItem("doctorName");
-        localStorage.removeItem("userRole");
-
+        localStorage.removeItem("userRole"); // Ștergem și rolul
 
         setUser({ loggedIn: false, role: null });
     };
