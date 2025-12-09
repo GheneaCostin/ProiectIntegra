@@ -11,18 +11,21 @@ function App() {
     const [user, setUser] = useState({
         loggedIn: false,
         role: null,
+        email: null,
     });
 
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("userRole");
+        const doctorEmail = localStorage.getItem("doctorEmail");
 
         if (token && role) {
             // Dacă avem token și rol salvate, considerăm utilizatorul autentificat
             setUser({
                 loggedIn: true,
-                role: role
+                role: role,
+                email: doctorEmail,
             });
         }
     }, []); // Se execută o singură dată la montarea aplicației
