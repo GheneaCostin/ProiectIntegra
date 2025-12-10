@@ -1,9 +1,12 @@
 package com.example.Backend.controller;
 
 
+import com.example.Backend.dto.ExportDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.service.TreatmentsService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,6 +67,22 @@ public class TreatmentController {
         }
     }
 
+    @PostMapping("/export")
+    public ResponseEntity<byte[]> exportPdf(@RequestBody ExportDTO request) {
+        List<Treatment> treatments = treatmentsService.findTreatmentsForExport(
+                request.getPatientId(),
+                request.getStartDate(),
+                request.getEndDate()
+        );
 
+
+
+        System.out.println("Export request received for patient: " + request.getPatientId());
+        System.out.println("Found " + treatments.size() + " treatments in range.");
+
+        return ResponseEntity.ok()
+                .body(new byte[0]);
+
+    }
 
 }

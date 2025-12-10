@@ -6,6 +6,7 @@ import Dashboard from "./Dashboard";
 import NavBar from "./Navbar";
 import PrescriptionForm from "./PrescriptionForm";
 import TreatmentsList from "./TreatmentsList";
+import Export from "./Export";
 
 function App() {
     const [user, setUser] = useState({
@@ -64,6 +65,11 @@ function App() {
                     <Route
                         path="/treatments"
                         element={<TreatmentsList />}
+                    />
+
+                    <Route
+                        path="/export"
+                        element={<Export />}
                     />
 
                 </Routes>

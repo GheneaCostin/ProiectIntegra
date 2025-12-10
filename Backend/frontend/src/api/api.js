@@ -64,3 +64,10 @@ export const getTreatmentsByDoctor = async (doctorId, page,  size , search = "",
     const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?${params.toString()}`);
     return response.data;
 };
+
+export const createExport = async (exportData) => {
+    const response = await axiosInstance.post("/treatments/export", exportData, {
+        responseType: 'blob'
+    });
+    return response;
+};
