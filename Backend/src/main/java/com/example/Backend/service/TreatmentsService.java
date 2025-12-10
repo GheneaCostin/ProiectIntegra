@@ -166,5 +166,14 @@ public class TreatmentsService {
         return new PageImpl<>(results, pageable, total);
     }
 
+    public List<Treatment> findTreatmentsForExport(String patientId, Date startDate, Date endDate) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("patientId").is(patientId));
+        if (startDate != null && endDate != null) {
+            query.addCriteria(Criteria.where("startDate").gte(startDate).lte(endDate));
+        }
+        return mongoTemplate.find(query, Treatment.class);
+    }
+
 
 }

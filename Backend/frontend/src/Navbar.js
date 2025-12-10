@@ -50,6 +50,13 @@ export default function Navbar({ user, onLogout }) {
                             Prescribe
                         </Button>
                     )}
+
+                    {user?.loggedIn && user.role === "doctor" && (
+                        <Button color="inherit" component={Link} to="/export">
+                            Export PDF
+                        </Button>
+                    )}
+
                 </Box>
 
                 <Box className="navbar-auth">
