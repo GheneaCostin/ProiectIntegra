@@ -65,9 +65,28 @@ export const getTreatmentsByDoctor = async (doctorId, page,  size , search = "",
     return response.data;
 };
 
-export const createExport = async (exportData) => {
-    const response = await axiosInstance.post("/treatments/export", exportData, {
-        responseType: 'blob'
-    });
-    return response;
+export const createExport = async (exportBody) => {
+    try {
+        const response = await axiosInstance.post(
+            "/treatments/export",
+            exportBody,
+            {
+                responseType: "arraybuffer",
+            }
+        );
+
+        const pdfBlob = new Blob([response.data], {type: "application/pdf"});
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "prescriptions.pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+
+    } catch (error) {
+        console.error("Export PDF error:", error);
+        throw error;
+    }
 };

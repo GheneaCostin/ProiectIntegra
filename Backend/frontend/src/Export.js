@@ -71,18 +71,9 @@ const Export = () => {
             endDate: endDate.toISOString()
         })
             .then((response) => {
-                if (response.status === 200) {
-                    const url = window.URL.createObjectURL(new Blob([response.data]));
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.setAttribute("download", "prescriptions.pdf");
-                    link.click();
-                    setSuccessMessage("Raport descarcat cu succes!");
-                } else {
-                    setSuccessMessage("Cererea a fost trimisa (Status: " + response.status + ")");
-                }
-
+                setSuccessMessage("Raport descărcat cu succes!");
                 setTimeout(() => setSuccessMessage(""), 3000);
+
             })
             .catch((err) => {
                 console.error("Export error:", err);

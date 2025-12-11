@@ -3,8 +3,10 @@ package com.example.Backend.controller;
 
 import com.example.Backend.dto.ExportDTO;
 import com.example.Backend.model.Treatment;
+import com.example.Backend.model.UserDetails;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.service.TreatmentsService;
+import com.example.Backend.util.PdfGenerator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,20 +71,32 @@ public class TreatmentController {
 
     @PostMapping("/export")
     public ResponseEntity<byte[]> exportPdf(@RequestBody ExportDTO request) {
-        List<Treatment> treatments = treatmentsService.findTreatmentsForExport(
-                request.getPatientId(),
-                request.getStartDate(),
-                request.getEndDate()
-        );
+        try {
+            UserDetails patient = treatmentsService.getPatientDetails(request.getPatientId());
+            if (patient == null) {
+                patient = new UserDetails();
+                patient.setFirstName("Pacient");
+                patient.setLastName("Fără Detalii (ID: " + request.getPatientId() + ")");
+            }
+
+            List<Treatment> treatments = treatmentsService.findTreatmentsForExport(
+                    request.getPatientId(),
+                    request.getStartDate(),
+                    request.getEndDate()
+            );
 
 
+            byte[] pdfContent = PdfGenerator.generatePdf(patient, treatments);
 
-        System.out.println("Export request received for patient: " + request.getPatientId());
-        System.out.println("Found " + treatments.size() + " treatments in range.");
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=prescriptions.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
 
-        return ResponseEntity.ok()
-                .body(new byte[0]);
-
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
 }

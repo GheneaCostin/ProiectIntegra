@@ -3,6 +3,7 @@ package com.example.Backend.service;
 
 import com.example.Backend.dto.TreatmentDTO;
 import com.example.Backend.model.Treatment;
+import com.example.Backend.model.UserDetails;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.repository.UserDetailsRepository;
 import org.bson.Document;
@@ -173,6 +174,10 @@ public class TreatmentsService {
             query.addCriteria(Criteria.where("startDate").gte(startDate).lte(endDate));
         }
         return mongoTemplate.find(query, Treatment.class);
+    }
+
+    public UserDetails getPatientDetails(String patientId) {
+        return userDetailsRepository.findByUserId(patientId).orElse(null);
     }
 
 
