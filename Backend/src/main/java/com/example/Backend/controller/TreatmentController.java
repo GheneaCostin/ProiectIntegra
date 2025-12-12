@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,13 +73,8 @@ public class TreatmentController {
     @PostMapping("/export")
     public ResponseEntity<byte[]> exportPdf(@RequestBody ExportDTO request) {
         try {
-            UserDetails patient = treatmentsService.getPatientDetails(request.getPatientId());
-            if (patient == null) {
-                patient = new UserDetails();
-                patient.setFirstName("Pacient");
-                patient.setLastName("Fără Detalii (ID: " + request.getPatientId() + ")");
-            }
 
+            UserDetails patient = treatmentsService.getPatientDetails(request.getPatientId());
             List<Treatment> treatments = treatmentsService.findTreatmentsForExport(
                     request.getPatientId(),
                     request.getStartDate(),
@@ -86,17 +82,28 @@ public class TreatmentController {
             );
 
 
+            if (patient == null) {
+                patient = new UserDetails();
+                patient.setFirstName("Necunoscut");
+                patient.setLastName("");
+            }
+
+
             byte[] pdfContent = PdfGenerator.generatePdf(patient, treatments);
 
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            String filename = "Raport_" + (patient.getFirstName() != null ? patient.getFirstName() : "Pacient") + ".pdf";
+            headers.setContentDispositionFormData("attachment", filename);
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=prescriptions.pdf")
-                    .contentType(MediaType.APPLICATION_PDF)
+                    .headers(headers)
                     .body(pdfContent);
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }
