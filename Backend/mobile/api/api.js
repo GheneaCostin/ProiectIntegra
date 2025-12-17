@@ -20,4 +20,14 @@ export const login = async (data) => {
     }
 };
 
+export const register = async (data) => {
+    try {
+        const response = await apiClient.post('/auth/register', data);
+        return response.data;
+    } catch (error) {
+        console.log("Register API Error:", error);
+        throw error;
+    }
+};
+
 export default apiClient;

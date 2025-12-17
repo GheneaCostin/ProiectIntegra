@@ -95,6 +95,16 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.loginButtonText}>LOGIN</Text>
                     )}
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.registerContainer}
+                    onPress={() => navigation.navigate('Register')}
+                >
+                    <Text style={styles.registerText}>
+                        Nu ai cont? <Text style={styles.registerLink}>Inregistreaza-te</Text>
+                    </Text>
+                </TouchableOpacity>
+
             </View>
         </KeyboardAvoidingView>
     );
