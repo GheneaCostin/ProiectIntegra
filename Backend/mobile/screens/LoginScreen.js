@@ -19,6 +19,33 @@ const LoginScreen = ({ navigation }) => {
     const [isPasswordHidden, setIsPasswordHidden] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert('Eroare', 'Te rog introdu email-ul si parola.');

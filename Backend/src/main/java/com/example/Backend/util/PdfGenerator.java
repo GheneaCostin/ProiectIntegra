@@ -70,7 +70,7 @@ public class PdfGenerator {
 
                 String name = (user.getFirstName() != null ? user.getFirstName() : "") + " " + (user.getLastName() != null ? user.getLastName() : "");
                 String infoLine1 = "Nume: " + name;
-                String infoLine2 = "Varsta: " + (user.getAge() > 0 ? user.getAge() : "N/A") + " ani  |  Sex: " + (user.getSex() != null ? user.getSex() : "N/A");
+                String infoLine2 = "Varsta: " + (user.getBirthDate()) + " ani  |  Sex: " + (user.getSex() != null ? user.getSex() : "N/A");
                 String infoLine3 = "Greutate: " + (user.getWeight() > 0 ? user.getWeight() + " kg" : "N/A") + "  |  Inaltime: " + (user.getHeight() > 0 ? user.getHeight() + " cm" : "N/A");
 
                 drawSimpleText(cs, infoLine1, MARGIN, yPosition);

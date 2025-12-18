@@ -4,13 +4,15 @@ package com.example.Backend.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document(collection = "userDetails")
 public class UserDetails {
 
     @Id
     private String id;
     private String userId;
-    private int age;
+    private Date birthDate;
     private int height;
     private int weight;
     private String sex;
@@ -21,9 +23,9 @@ public class UserDetails {
     public UserDetails() {
     }
 
-    public UserDetails(String userId, int age, int height, int weight, String sex, String extrainfo, String firstName, String lastName) {
+    public UserDetails(String userId, Date birthDate, int height, int weight, String sex, String extrainfo, String firstName, String lastName) {
         this.userId = userId;
-        this.age = age;
+        this.birthDate = birthDate;
         this.height = height;
         this.weight = weight;
         this.sex = sex;
@@ -39,8 +41,8 @@ public class UserDetails {
 
     public void setUserId(String userId) {this.userId = userId;}
 
-    public void setAge(int age) {this.age = age;}
-    public int getAge() {return age;}
+    public void setBirthDate(Date birthDate) {this.birthDate = birthDate;}
+    public Date getBirthDate() {return birthDate;}
 
     public void setHeight(int height) {this.height = height;}
     public int getHeight() {return height;}
