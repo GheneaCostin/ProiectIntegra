@@ -3,6 +3,9 @@ import {getPatients, getTreatmentsByDoctor} from "./api/api";
 import { useNavigate } from "react-router-dom";
 import StatCard from "./StatCard";
 import "./Dashboard.css";
+import { differenceInYears } from "date-fns";
+
+
 
 
 const PatientDetails = ({ patient }) => {
@@ -12,6 +15,16 @@ const PatientDetails = ({ patient }) => {
     const handlePrescribeClick = () => {
         const patientId = patient.userId || patient.id;
         navigate(`/prescribe?patientId=${patientId}`);
+    };
+
+    const calculateAge = (birthDateString) => {
+        if (!birthDateString) return "N/A";
+        try {
+            const age = differenceInYears(new Date(), new Date(birthDateString));
+            return `${age} ani`;
+        } catch (error) {
+            return "Data invalida";
+        }
     };
 
     return (
@@ -26,7 +39,10 @@ const PatientDetails = ({ patient }) => {
             <div className="details-grid">
                 <div>
                     <p className="detail-label">Vârstă</p>
-                    <p className="detail-value">{patient.age > 0 ? `${patient.age} ani` : '-'}</p>
+
+                    <p className="detail-value">
+                        {patient.birthDate ? calculateAge(patient.birthDate) : (patient.age ? `${patient.age} ani` : '-')}
+                    </p>
                 </div>
                 <div>
                     <p className="detail-label">Sex</p>
@@ -74,6 +90,11 @@ function Dashboard() {
     const doctorEmail = localStorage.getItem("doctorEmail") || "Doctor";
     const doctorId = localStorage.getItem("userId")
 
+    const calculateAgeShort = (birthDateString) => {
+        if (!birthDateString) return '-';
+        return differenceInYears(new Date(), new Date(birthDateString)) + " ani";
+    };
+
     useEffect(() => {
         const fetchPatients = async () => {
             try {
@@ -84,7 +105,7 @@ function Dashboard() {
                     throw new Error("Formatul datelor de la server este incorect.");
                 }
 
-                // Procesare minimă: Adăugăm doar o cheie unică pentru React și un nume complet pentru filtrare
+
                 const processedData = data.map((p, index) => {
                     const fullName = `${p.firstName || ''} ${p.lastName || ''}`.trim();
                     return {
@@ -176,7 +197,7 @@ function Dashboard() {
                                         {p.displayName}
                                     </div>
                                     <div className="patient-meta">
-                                        {p.sex !== '-' ? p.sex : 'Gen: -'}, {p.age > 0 ? `${p.age} ani` : 'Vârstă: -'}
+                                        {p.sex !== '-' ? p.sex : 'Gen: -'}, {p.birthDate ? calculateAgeShort(p.birthDate) : (p.age ? `${p.age} ani` : '-')}
                                     </div>
                                 </li>
                             ))}

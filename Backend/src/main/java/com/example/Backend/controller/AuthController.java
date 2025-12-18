@@ -1,13 +1,16 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.JWT.JwtUtil;
+import com.example.Backend.dto.RegisterRequest;
 import com.example.Backend.model.RefreshToken;
 import com.example.Backend.model.User;
+import com.example.Backend.service.AuthService;
 import com.example.Backend.service.RefreshTokenService;
 import com.example.Backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,10 +23,15 @@ public class AuthController {
 
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
+    private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(RefreshTokenService refreshTokenService, UserService userService) {
+    public AuthController(RefreshTokenService refreshTokenService, UserService userService ,AuthService authService,
+                          PasswordEncoder passwordEncoder) {
         this.refreshTokenService = refreshTokenService;
         this.userService = userService;
+        this.authService = authService;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -50,7 +58,7 @@ public class AuthController {
                         "role"
                         , user.getRole(),
 
-                        // 🚨 CORECȚIA FINALĂ: Trimitem doar emailul doctorului
+
                         "email",
                         user.getEmail(),
 
@@ -80,12 +88,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if (userService.getUserByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use.");
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+        try {
+            authService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        user.setRole("Pacient");
-        User newUser = userService.addUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 }

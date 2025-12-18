@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class DoctorController {
                 placeholder.setUserId(user.getId());
                 placeholder.setFirstName(user.getEmail());
                 placeholder.setLastName("");
-                placeholder.setAge(0); // Sau null
+                placeholder.setBirthDate(null); // Sau null
                 placeholder.setSex("-");
                 placeholder.setExtrainfo("Fără detalii medicale completate.");
                 combinedList.add(placeholder);
