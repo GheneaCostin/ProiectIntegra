@@ -13,7 +13,7 @@ const PatientDetails = ({ patient }) => {
 
 
     const handlePrescribeClick = () => {
-        const patientId = patient.userId || patient.id;
+        const patientId = patient.userId || patient.id;+
         navigate(`/prescribe?patientId=${patientId}`);
     };
 

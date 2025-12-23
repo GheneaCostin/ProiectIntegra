@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     View,
@@ -11,6 +12,7 @@ import {
     Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../api/api';
 
 const LoginScreen = ({ navigation }) => {
@@ -18,33 +20,6 @@ const LoginScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [isPasswordHidden, setIsPasswordHidden] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -57,9 +32,27 @@ const LoginScreen = ({ navigation }) => {
         try {
 
             const response = await login({ email, password });
-
             console.log('Login success:', response);
 
+            await AsyncStorage.setItem('userToken', response.token);
+            await AsyncStorage.setItem('userEmail', response.email);
+            await AsyncStorage.setItem('userRole', response.role);
+
+            if (response.userId) {
+                await AsyncStorage.setItem('userId', response.userId);
+            } else {
+                console.warn("Atentie: Serverul nu a returnat userId la login!");
+            }
+
+            Alert.alert('Succes', 'Te-ai autentificat cu succes!', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Main' }],
+                    })
+                }
+            ]);
 
         } catch (error) {
             const errorMessage = error.response?.data || 'Email sau parola incorecta.';
