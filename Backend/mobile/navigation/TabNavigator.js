@@ -1,10 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons,  MaterialCommunityIcons  } from '@expo/vector-icons';
 
 
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import TreatmentsScreen from '../screens/TreatmentsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -13,16 +14,15 @@ export default function TabNavigator() {
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
-
                     if (route.name === 'Home') {
-                        iconName = focused ? 'home' : 'home-outline';
+                        const iconName = focused ? 'home' : 'home-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
                     } else if (route.name === 'Settings') {
-                        iconName = focused ? 'settings' : 'settings-outline';
+                        const iconName = focused ? 'settings' : 'settings-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
+                    } else if (route.name === 'Tratamente') {
+                        return <MaterialCommunityIcons name="pill" size={size} color={color} />;
                     }
-
-
-                    return <Ionicons name={iconName} size={size} color={color} />;
                 },
                 tabBarActiveTintColor: '#007AFF',
                 tabBarInactiveTintColor: 'gray',
@@ -30,6 +30,7 @@ export default function TabNavigator() {
             })}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Tratamente" component={TreatmentsScreen} />
             <Tab.Screen name="Settings" component={SettingsScreen} />
         </Tab.Navigator>
     );
