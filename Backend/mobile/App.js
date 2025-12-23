@@ -5,6 +5,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from "./screens/RegisterScreen";
+import TabNavigator from './navigation/TabNavigator';
+import { enableScreens } from 'react-native-screens';
+
+enableScreens();
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +28,11 @@ export default function App() {
               options={{ headerShown: false }}
           />
 
+          <Stack.Screen
+              name="Main"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+           />
 
 
         </Stack.Navigator>
