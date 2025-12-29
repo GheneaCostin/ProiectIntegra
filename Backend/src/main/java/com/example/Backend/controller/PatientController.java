@@ -7,6 +7,7 @@ import com.example.Backend.service.TreatmentsService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.Backend.dto.TreatmentIntakeDTO;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -90,4 +91,16 @@ public class PatientController {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
     }
+    @PostMapping("/treatment-intake")
+    public ResponseEntity<?> markTreatmentIntake(@RequestBody TreatmentIntakeDTO intakeDTO) {
+        try {
+            Treatment updatedTreatment = treatmentsService.markTreatmentIntake(intakeDTO);
+            return ResponseEntity.ok("Doza a fost marcată cu succes.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Eroare server: " + e.getMessage());
+        }
+    }
+
 }
