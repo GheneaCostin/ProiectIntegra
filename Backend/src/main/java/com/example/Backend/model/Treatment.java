@@ -4,7 +4,9 @@ package com.example.Backend.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "treatments")
 public class Treatment {
@@ -20,6 +22,7 @@ public class Treatment {
     private Date startDate;
     private Date endDate;
     public Treatment() {}
+    private List<TreatmentIntake> treatmentIntakes = new ArrayList<>();
 
     public Treatment(String medicationName, String dosage, int frequency) {
         this.medicationName = medicationName;
@@ -53,5 +56,21 @@ public class Treatment {
     public int getFrequency() { return frequency; }
     public void setFrequency(int frequency) { this.frequency = frequency; }
 
+    public List<TreatmentIntake> getTreatmentIntakes() {
+        if (treatmentIntakes == null) {
+            treatmentIntakes = new ArrayList<>();
+        }
+        return treatmentIntakes;
+    }
 
+    public void setTreatmentIntakes(List<TreatmentIntake> treatmentIntakes) {
+        this.treatmentIntakes = treatmentIntakes;
+    }
+
+  /*  public void addTreatmentIntake(TreatmentIntake intake) {
+        if (this.treatmentIntakes == null) {
+            this.treatmentIntakes = new ArrayList<>();
+        }
+        this.treatmentIntakes.add(intake);
+    }*/
 }

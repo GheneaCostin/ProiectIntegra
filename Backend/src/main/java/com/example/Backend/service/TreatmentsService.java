@@ -4,6 +4,8 @@ package com.example.Backend.service;
 import com.example.Backend.dto.TreatmentDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.model.UserDetails;
+import com.example.Backend.dto.TreatmentIntakeDTO;
+import com.example.Backend.model.TreatmentIntake;
 import com.example.Backend.repository.TreatmentsRepository;
 import com.example.Backend.repository.UserDetailsRepository;
 import org.bson.Document;
@@ -180,5 +182,55 @@ public class TreatmentsService {
         return userDetailsRepository.findByUserId(patientId).orElse(null);
     }
 
+    public Treatment markTreatmentIntake(TreatmentIntakeDTO treatmentIntakeDTO) {
+        String treatmentId = treatmentIntakeDTO.getTreatmentId();
+        String patientId = treatmentIntakeDTO.getPatientId();
+        LocalDate date = treatmentIntakeDTO.getDate();
+        Integer doseIndex = treatmentIntakeDTO.getDoseIndex();
 
+
+        Treatment treatment = treatmentsRepository.findById(treatmentId)
+                .orElseThrow(() -> new RuntimeException("Tratament inexistent"));
+
+
+        if (!treatment.getPatientId().equals(patientId)) {
+            throw new RuntimeException("Acces interzis: Tratamentul nu aparține acestui pacient.");
+        }
+
+        TreatmentIntake intake = treatment.getTreatmentIntakes()
+                .stream()
+                .filter(i -> {
+                    LocalDate intakeDate = toLocalDate(i.getDate());
+                    return intakeDate.equals(date) && i.getDoseIndex().equals(doseIndex);
+                })
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Doza nu exista"));
+
+        if (intake.getTakenAt() != null) {
+            throw new RuntimeException("Doza este deja administrată.");
+        }
+
+        if (date.isBefore(toLocalDate(treatment.getStartDate())) ||
+                (treatment.getEndDate() != null && date.isAfter(toLocalDate(treatment.getEndDate())))) {
+            throw new RuntimeException("Data este în afara tratamentului.");
+        }
+
+        if (date.isAfter(LocalDate.now())) {
+            throw new RuntimeException("Nu se poate marca o doza din viitor.");
+        }
+
+
+        intake.setTakenAt(new Date());
+
+
+        return treatmentsRepository.save(treatment);
+    }
+
+
+    private LocalDate toLocalDate(Date date) {
+        if (date == null) return null;
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
 }
