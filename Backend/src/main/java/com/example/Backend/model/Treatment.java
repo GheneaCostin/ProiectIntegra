@@ -67,10 +67,10 @@ public class Treatment {
         this.treatmentIntakes = treatmentIntakes;
     }
 
-  /*  public void addTreatmentIntake(TreatmentIntake intake) {
+   public void addTreatmentIntake(TreatmentIntake intake) {
         if (this.treatmentIntakes == null) {
             this.treatmentIntakes = new ArrayList<>();
         }
         this.treatmentIntakes.add(intake);
-    }*/
+    }
 }
