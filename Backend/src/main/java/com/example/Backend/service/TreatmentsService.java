@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,8 +33,9 @@ public class TreatmentsService {
     @Autowired
     private TreatmentsRepository treatmentsRepository;
     private final MongoTemplate mongoTemplate;
-
     private final UserDetailsRepository userDetailsRepository;
+
+
     public TreatmentsService(TreatmentsRepository treatmentsRepository, UserDetailsRepository userDetailsRepository,MongoTemplate mongoTemplate) {
         this.userDetailsRepository = userDetailsRepository;
         this.treatmentsRepository = treatmentsRepository;
@@ -42,6 +44,7 @@ public class TreatmentsService {
 
 
     public List<Treatment> getAllTreatments() {
+
         return treatmentsRepository.findAll();
     }
 
@@ -182,46 +185,36 @@ public class TreatmentsService {
         return userDetailsRepository.findByUserId(patientId).orElse(null);
     }
 
-    public Treatment markTreatmentIntake(TreatmentIntakeDTO treatmentIntakeDTO) {
-        String treatmentId = treatmentIntakeDTO.getTreatmentId();
-        String patientId = treatmentIntakeDTO.getPatientId();
-        LocalDate date = treatmentIntakeDTO.getDate();
-        Integer doseIndex = treatmentIntakeDTO.getDoseIndex();
+    public Treatment markTreatmentIntake(TreatmentIntakeDTO intakeDTO) {
+        String treatmentId = intakeDTO.getTreatmentId();
+        String patientId = intakeDTO.getPatientId();
+        Date dateOfIntake = intakeDTO.getDate();
+        Integer doseIndex = intakeDTO.getDoseIndex();
 
 
         Treatment treatment = treatmentsRepository.findById(treatmentId)
                 .orElseThrow(() -> new RuntimeException("Tratament inexistent"));
 
-
         if (!treatment.getPatientId().equals(patientId)) {
-            throw new RuntimeException("Acces interzis: Tratamentul nu aparține acestui pacient.");
+            throw new RuntimeException("Acces interzis");
         }
 
-        TreatmentIntake intake = treatment.getTreatmentIntakes()
-                .stream()
-                .filter(i -> {
-                    LocalDate intakeDate = toLocalDate(i.getDate());
-                    return intakeDate.equals(date) && i.getDoseIndex().equals(doseIndex);
-                })
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Doza nu exista"));
-
-        if (intake.getTakenAt() != null) {
-            throw new RuntimeException("Doza este deja administrată.");
+        if (dateOfIntake.before(treatment.getStartDate()) ||
+                (treatment.getEndDate() != null && dateOfIntake.after(treatment.getEndDate()))) {
+            throw new RuntimeException("Data este în afara tratamentului");
         }
 
-        if (date.isBefore(toLocalDate(treatment.getStartDate())) ||
-                (treatment.getEndDate() != null && date.isAfter(toLocalDate(treatment.getEndDate())))) {
-            throw new RuntimeException("Data este în afara tratamentului.");
+        if (dateOfIntake.after(new Date())) {
+            throw new RuntimeException("Nu se poate marca o doză din viitor");
         }
 
-        if (date.isAfter(LocalDate.now())) {
-            throw new RuntimeException("Nu se poate marca o doza din viitor.");
+        if (treatment.getTreatmentIntakes() == null) {
+            treatment.setTreatmentIntakes(new ArrayList<>());
         }
 
+        TreatmentIntake newIntake = new TreatmentIntake(dateOfIntake, doseIndex);
 
-        intake.setTakenAt(new Date());
-
+        treatment.getTreatmentIntakes().add(newIntake);
 
         return treatmentsRepository.save(treatment);
     }

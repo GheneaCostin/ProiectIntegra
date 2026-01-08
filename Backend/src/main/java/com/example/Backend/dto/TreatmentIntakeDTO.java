@@ -1,16 +1,17 @@
 package com.example.Backend.dto;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 public class TreatmentIntakeDTO {
     private String treatmentId;
     private String patientId;
-    private LocalDate date;
+
+    private Date date;
     private int doseIndex;
 
     public TreatmentIntakeDTO() {}
 
-    public TreatmentIntakeDTO(String treatmentId, String patientId, LocalDate date, int doseIndex) {
+    public TreatmentIntakeDTO(String treatmentId, String patientId, Date date, int doseIndex) {
         this.treatmentId = treatmentId;
         this.patientId = patientId;
         this.date = date;
@@ -33,11 +34,11 @@ public class TreatmentIntakeDTO {
         this.patientId = patientId;
     }
 
-    public LocalDate getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
