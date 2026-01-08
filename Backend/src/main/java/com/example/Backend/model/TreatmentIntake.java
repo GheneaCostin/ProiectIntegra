@@ -5,7 +5,6 @@ import java.util.Date;
 public class TreatmentIntake {
     private Date date;
     private Integer doseIndex;
-    private Date takenAt;
 
     public TreatmentIntake() {
     }
@@ -31,11 +30,4 @@ public class TreatmentIntake {
         this.doseIndex = doseIndex;
     }
 
-    public Date getTakenAt() {
-        return takenAt;
-    }
-
-    public void setTakenAt(Date takenAt) {
-        this.takenAt = takenAt;
-    }
 }
