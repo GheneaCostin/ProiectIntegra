@@ -1,6 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.dto.TreatmentDTO;
+import com.example.Backend.dto.TreatmentProgressDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.repository.UserDetailsRepository;
 import com.example.Backend.service.TreatmentsService;
@@ -102,5 +103,16 @@ public class PatientController {
             return ResponseEntity.internalServerError().body("Eroare server: " + e.getMessage());
         }
     }
+
+    @GetMapping("/treatments/{treatmentId}/progress")
+    public ResponseEntity<TreatmentProgressDTO> getTreatmentProgress(@PathVariable String treatmentId) {
+        try {
+            TreatmentProgressDTO progress = treatmentsService.getTreatmentProgress(treatmentId);
+            return ResponseEntity.ok(progress);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }

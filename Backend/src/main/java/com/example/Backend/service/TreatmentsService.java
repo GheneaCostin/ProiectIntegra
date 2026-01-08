@@ -2,6 +2,7 @@ package com.example.Backend.service;
 
 
 import com.example.Backend.dto.TreatmentDTO;
+import com.example.Backend.dto.TreatmentProgressDTO;
 import com.example.Backend.model.Treatment;
 import com.example.Backend.model.UserDetails;
 import com.example.Backend.dto.TreatmentIntakeDTO;
@@ -19,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -218,6 +220,54 @@ public class TreatmentsService {
 
         return treatmentsRepository.save(treatment);
     }
+
+    public TreatmentProgressDTO getTreatmentProgress(String treatmentId) {
+        Treatment treatment = treatmentsRepository.findById(treatmentId)
+                .orElseThrow(() -> new RuntimeException("Tratament inexistent"));
+
+        if (treatment.getStartDate() == null || treatment.getEndDate() == null) {
+            // Dacă nu avem dată de start sau final, nu putem calcula progresul total
+            return new TreatmentProgressDTO(treatmentId, treatment.getPatientId(), 0, 0, 0.0);
+        }
+
+        // Conversie la LocalDate pentru calculul zilelor
+        LocalDate start = toLocalDate(treatment.getStartDate());
+        LocalDate end = toLocalDate(treatment.getEndDate());
+
+        // Calculăm numărul de zile (inclusiv ultima zi)
+        long daysBetween = ChronoUnit.DAYS.between(start, end) + 1;
+
+        // Total doze planificate = zile * frecvență
+        int frequency = treatment.getFrequency();
+        // Asigurăm-ne că frecvența e cel puțin 1 pentru a evita diviziunea cu 0 sau logica greșită
+        if (frequency <= 0) frequency = 1;
+
+        int totalPlannedDoses = (int) daysBetween * frequency;
+
+        // Doze luate
+        int takenDoses = 0;
+        if (treatment.getTreatmentIntakes() != null) {
+            takenDoses = treatment.getTreatmentIntakes().size();
+        }
+
+        // Calcul procentaj
+        double percentage = 0.0;
+        if (totalPlannedDoses > 0) {
+            percentage = ((double) takenDoses / totalPlannedDoses) * 100;
+        }
+
+        percentage = Math.round(percentage * 100.0) / 100.0;
+
+        return new TreatmentProgressDTO(
+                treatmentId,
+                treatment.getPatientId(),
+                totalPlannedDoses,
+                takenDoses,
+                percentage
+        );
+    }
+
+
 
 
     private LocalDate toLocalDate(Date date) {
