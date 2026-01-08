@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,7 @@ import {
     StatusBar,
     Alert
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native'; // Import esențial pentru refresh
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../api/api';
@@ -16,24 +17,29 @@ import apiClient from '../api/api';
 const TreatmentsScreen = () => {
     const [treatments, setTreatments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    // Stocăm progresul mapat după ID-ul tratamentului: { 'id_tratament': 45.5 }
+    const [treatmentsProgress, setTreatmentsProgress] = useState({});
 
-    useEffect(() => {
-        fetchTreatments();
-    }, []);
+    // useFocusEffect rulează funcția de fiecare dată când ecranul devine vizibil
+    useFocusEffect(
+        useCallback(() => {
+            fetchTreatments();
+        }, [])
+    );
 
     const fetchTreatments = async () => {
-        setIsLoading(true);
+        // Opțional: poți comenta setIsLoading(true) dacă nu vrei spinner la fiecare navigare
+        // setIsLoading(true);
         try {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('userToken');
 
             if (!userId) {
-                // Fallback sau eroare dacă nu există ID
                 setIsLoading(false);
                 return;
             }
 
-            // Folosim apiClient
+            // 1. Luăm lista de tratamente
             const response = await apiClient.get(`/patient/treatments/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -42,55 +48,104 @@ const TreatmentsScreen = () => {
                 setTreatments([]);
             } else {
                 setTreatments(response.data);
+                // 2. Imediat ce avem lista, cerem progresul pentru fiecare
+                fetchProgressForTreatments(response.data, token);
             }
 
         } catch (error) {
             console.error("Eroare fetch tratamente:", error);
-            // Poți afișa un mesaj discret sau doar în consolă pentru a nu bloca UI-ul la fiecare tab change
         } finally {
             setIsLoading(false);
         }
     };
 
-    const renderTreatmentItem = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View style={styles.iconContainer}>
-                    <MaterialCommunityIcons name="pill" size={24} color="#007bff" />
-                </View>
-                <View style={styles.cardHeaderText}>
-                    <Text style={styles.medicationName}>{item.medicationName}</Text>
-                    <Text style={styles.dosage}>{item.dosage}</Text>
-                </View>
-                <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>Activ</Text>
-                </View>
-            </View>
+    const fetchProgressForTreatments = async (treatmentList, token) => {
+        const progressMap = {};
 
-            <View style={styles.divider} />
+        // Facem cereri paralele pentru eficiență
+        await Promise.all(treatmentList.map(async (treatment) => {
+            try {
+                const res = await apiClient.get(`/patient/treatments/${treatment.id}/progress`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-            <View style={styles.cardBody}>
-                <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="clock-outline" size={18} color="#666" style={styles.infoIcon} />
-                    <Text style={styles.infoText}>{item.frequency}</Text>
-                </View>
+                if (res.data) {
+                    progressMap[treatment.id] = res.data.progressPercentage;
+                }
+            } catch (err) {
+                console.log(`Nu s-a putut lua progresul pentru ${treatment.id}`);
+                progressMap[treatment.id] = 0;
+            }
+        }));
 
-                <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="calendar-range" size={18} color="#666" style={styles.infoIcon} />
-                    <Text style={styles.infoText}>
-                        {item.startDate ? new Date(item.startDate).toLocaleDateString() : 'N/A'} -
-                        {item.endDate ? new Date(item.endDate).toLocaleDateString() : 'Nedeterminat'}
-                    </Text>
-                </View>
+        setTreatmentsProgress(progressMap);
+    };
 
-                {item.notes && (
-                    <View style={styles.notesContainer}>
-                        <Text style={styles.notesText}>Note: {item.notes}</Text>
+    const getProgressColor = (percentage) => {
+        if (percentage >= 80) return '#388e3c'; // Verde
+        if (percentage >= 40) return '#fbc02d'; // Galben
+        return '#d32f2f'; // Roșu
+    };
+
+    const renderTreatmentItem = ({ item }) => {
+        const progress = treatmentsProgress[item.id] || 0;
+        const color = getProgressColor(progress);
+
+        return (
+            <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                    <View style={styles.iconContainer}>
+                        <MaterialCommunityIcons name="pill" size={24} color="#007bff" />
                     </View>
-                )}
+                    <View style={styles.cardHeaderText}>
+                        <Text style={styles.medicationName}>{item.medicationName}</Text>
+                        <Text style={styles.dosage}>{item.dosage}</Text>
+                    </View>
+
+                    {/* Badge Progres */}
+                    <View style={styles.progressBadge}>
+                        <Text style={[styles.progressText, { color: color }]}>
+                            {Math.round(progress)}%
+                        </Text>
+                        <MaterialCommunityIcons name="chart-pie" size={16} color={color} />
+                    </View>
+                </View>
+
+                {/* Bara de progres vizuală sub header */}
+                <View style={styles.progressBarBg}>
+                    <View
+                        style={[
+                            styles.progressBarFill,
+                            { width: `${Math.min(progress, 100)}%`, backgroundColor: color }
+                        ]}
+                    />
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.cardBody}>
+                    <View style={styles.infoRow}>
+                        <MaterialCommunityIcons name="clock-outline" size={18} color="#666" style={styles.infoIcon} />
+                        <Text style={styles.infoText}>{item.frequency} / zi</Text>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                        <MaterialCommunityIcons name="calendar-range" size={18} color="#666" style={styles.infoIcon} />
+                        <Text style={styles.infoText}>
+                            {item.startDate ? new Date(item.startDate).toLocaleDateString() : 'N/A'} -
+                            {item.endDate ? new Date(item.endDate).toLocaleDateString() : 'Nedeterminat'}
+                        </Text>
+                    </View>
+
+                    {item.notes && (
+                        <View style={styles.notesContainer}>
+                            <Text style={styles.notesText}>Note: {item.notes}</Text>
+                        </View>
+                    )}
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -100,7 +155,7 @@ const TreatmentsScreen = () => {
                 <Text style={styles.pageTitle}>Tratamentele Mele</Text>
             </View>
 
-            {isLoading ? (
+            {isLoading && treatments.length === 0 ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#007bff" />
                 </View>
@@ -116,8 +171,6 @@ const TreatmentsScreen = () => {
                             <Text style={styles.emptyText}>Nu ai tratamente active.</Text>
                         </View>
                     }
-                    refreshing={isLoading}
-                    onRefresh={fetchTreatments}
                 />
             )}
         </SafeAreaView>
@@ -163,7 +216,7 @@ const styles = StyleSheet.create({
     },
     cardHeader: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         marginBottom: 10,
     },
     iconContainer: {
@@ -189,21 +242,36 @@ const styles = StyleSheet.create({
         color: '#666',
         marginTop: 2,
     },
-    statusBadge: {
-        backgroundColor: '#e8f5e9',
-        paddingHorizontal: 10,
+    progressBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: '#f9f9f9',
+        paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 10,
+        borderRadius: 8,
     },
-    statusText: {
-        color: '#2e7d32',
-        fontSize: 12,
+    progressText: {
         fontWeight: 'bold',
+        fontSize: 14,
+    },
+    // Bara de progres subtilă
+    progressBarBg: {
+        height: 4,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 2,
+        marginTop: -5,
+        marginBottom: 10,
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        borderRadius: 2,
     },
     divider: {
         height: 1,
         backgroundColor: '#f0f0f0',
-        marginVertical: 10,
+        marginBottom: 10,
     },
     cardBody: {
         gap: 8,

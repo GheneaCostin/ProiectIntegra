@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
     Text,
@@ -41,6 +41,20 @@ const CalendarScreen = () => {
     const [selectedTime, setSelectedTime] = useState(new Date());
     const [currentTreatment, setCurrentTreatment] = useState(null);
 
+    // Helper pentru a număra dozele din data selectată
+    const countIntakesForDate = (intakes, dateString) => {
+        if (!intakes || !Array.isArray(intakes)) {
+            return 0;
+        }
+
+        return intakes.filter(intake => {
+            if (!intake.date) return false;
+            // intake.date vine ca ISO string
+            const intakeDate = new Date(intake.date).toISOString().split('T')[0];
+            return intakeDate === dateString;
+        }).length;
+    };
+
     // --- 1. DEFINIREA FUNCȚIILOR ---
 
     const fetchTreatmentsForDate = async (date) => {
@@ -79,14 +93,16 @@ const CalendarScreen = () => {
             const finalDate = new Date(selectedTime);
             finalDate.setFullYear(datePart.getFullYear(), datePart.getMonth(), datePart.getDate());
 
+            const isoDate = finalDate.toISOString();
+
             const payload = {
                 treatmentId: currentTreatment.id,
                 patientId: userId,
-                date: finalDate.toISOString(),
+                date: isoDate,
                 doseIndex: (currentTreatment.treatmentIntakes?.length || 0) + 1
             };
 
-            const response = await apiClient.post('/patient/treatment-intake', payload, {
+            await apiClient.post('/patient/treatment-intake', payload, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -96,18 +112,52 @@ const CalendarScreen = () => {
             fetchTreatmentsForDate(selectedDate);
 
         } catch (error) {
+            console.error("Eroare la mark dose:", error);
             const msg = error.response?.data || "Eroare la înregistrarea dozei.";
             Alert.alert("Eroare", typeof msg === 'string' ? msg : JSON.stringify(msg));
         }
     };
 
-    // --- 2. USE EFFECT ---
+    // --- 2. LOGICĂ PROGRES ZILNIC ---
+    const dailyProgress = useMemo(() => {
+        if (!treatments || treatments.length === 0) {
+            return { percentage: 0, color: '#e0e0e0', taken: 0, total: 0 };
+        }
+
+        let totalPlanned = 0;
+        let totalTaken = 0;
+
+        treatments.forEach(t => {
+            const freq = (typeof t.frequency === 'number') ? t.frequency : 1;
+            const taken = countIntakesForDate(t.treatmentIntakes, selectedDate);
+
+            totalPlanned += freq;
+            totalTaken += taken;
+        });
+
+        if (totalPlanned === 0) return { percentage: 0, color: '#e0e0e0', taken: 0, total: 0 };
+
+        const percentage = Math.min((totalTaken / totalPlanned) * 100, 100);
+
+        let color = '#d32f2f'; // Roșu (< 40%)
+        if (percentage >= 80) {
+            color = '#388e3c'; // Verde
+        } else if (percentage >= 40) {
+            color = '#fbc02d'; // Galben
+        }
+
+        return { percentage, color, taken: totalTaken, total: totalPlanned };
+
+    }, [treatments, selectedDate]);
+
+
+    // --- 3. USE EFFECT ---
     useEffect(() => {
         fetchTreatmentsForDate(selectedDate);
     }, [selectedDate]);
 
 
-    // --- 3. RENDER FUNCTIONS ---
+    // --- 4. RENDER FUNCTIONS ---
     const renderRightActions = (item) => {
         return (
             <TouchableOpacity
@@ -125,27 +175,23 @@ const CalendarScreen = () => {
     };
 
     const renderItem = ({ item }) => {
-        const takenToday = item.treatmentIntakes?.length || 0;
-
-        // --- FIX: Folosim direct valoarea numerică ---
-        // Deoarece în Treatment.java 'frequency' este int, nu mai folosim .match()
+        const takenToday = countIntakesForDate(item.treatmentIntakes, selectedDate);
         const maxDoses = (typeof item.frequency === 'number') ? item.frequency : 1;
-
         const remaining = Math.max(maxDoses - takenToday, 0);
 
         return (
             <Swipeable renderRightActions={() => renderRightActions(item)}>
                 <View style={styles.card}>
-                    <View style={styles.leftBorder} />
+                    <View style={[styles.leftBorder, { backgroundColor: remaining === 0 ? '#388e3c' : '#007AFF' }]} />
                     <View style={styles.cardContent}>
                         <View style={styles.headerContent}>
                             <Text style={styles.medicationName}>{item.medicationName}</Text>
-                            <Text style={styles.dosage}>Dosage: {item.dosage}</Text>
+                            <Text style={styles.dosage}>Dozaj: {item.dosage}</Text>
                         </View>
                         <View style={styles.detailsContent}>
-                            <Text style={styles.detailText}>Frequency: {item.frequency} / day</Text>
+                            <Text style={styles.detailText}>Frecvență: {item.frequency} / zi</Text>
                             <Text style={[styles.detailText, { fontWeight: 'bold', color: remaining > 0 ? '#d32f2f' : '#388e3c' }]}>
-                                Remaining today: {remaining}
+                                Rămase azi: {remaining}
                             </Text>
                         </View>
                     </View>
@@ -154,7 +200,7 @@ const CalendarScreen = () => {
         );
     };
 
-    // --- 4. RETURN JSX ---
+    // --- 5. RETURN JSX ---
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
@@ -174,6 +220,27 @@ const CalendarScreen = () => {
                     />
                 </View>
 
+                {/* SECȚIUNE PROGRES ZILNIC */}
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressTextRow}>
+                        <Text style={styles.progressLabel}>Progresul Zilei</Text>
+                        <Text style={styles.progressValue}>
+                            {dailyProgress.taken}/{dailyProgress.total} doze ({Math.round(dailyProgress.percentage)}%)
+                        </Text>
+                    </View>
+                    <View style={styles.progressBarBackground}>
+                        <View
+                            style={[
+                                styles.progressBarFill,
+                                {
+                                    width: `${dailyProgress.percentage}%`,
+                                    backgroundColor: dailyProgress.color
+                                }
+                            ]}
+                        />
+                    </View>
+                </View>
+
                 <View style={styles.listContainer}>
                     <Text style={styles.sectionTitle}>
                         Treatments {selectedDate ? `- ${selectedDate}` : ''}
@@ -188,7 +255,7 @@ const CalendarScreen = () => {
                             keyExtractor={item => item.id}
                             ListEmptyComponent={
                                 <View style={styles.emptyContainer}>
-                                    <Text style={styles.emptyText}>There are no treatments for this day</Text>
+                                    <Text style={styles.emptyText}>Nu există tratamente pentru această zi.</Text>
                                 </View>
                             }
                             contentContainerStyle={{ paddingBottom: 20 }}
@@ -205,7 +272,7 @@ const CalendarScreen = () => {
                 >
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Enter dose intake time</Text>
+                            <Text style={styles.modalTitle}>Ora administrării</Text>
 
                             <View style={styles.pickerContainer}>
                                 <DateTimePicker
@@ -224,7 +291,7 @@ const CalendarScreen = () => {
                                     style={[styles.modalButton, styles.cancelButton]}
                                     onPress={() => setModalVisible(false)}
                                 >
-                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                    <Text style={styles.cancelButtonText}>Anulează</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
@@ -255,7 +322,38 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        marginBottom: 10,
+        marginBottom: 5,
+    },
+    progressContainer: {
+        backgroundColor: '#fff',
+        padding: 15,
+        marginHorizontal: 20,
+        marginTop: 10,
+        borderRadius: 10,
+        elevation: 2,
+    },
+    progressTextRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    progressLabel: {
+        fontWeight: 'bold',
+        color: '#555',
+    },
+    progressValue: {
+        color: '#333',
+        fontWeight: 'bold',
+    },
+    progressBarBackground: {
+        height: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 5,
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        borderRadius: 5,
     },
     listContainer: {
         flex: 1,
@@ -267,7 +365,6 @@ const styles = StyleSheet.create({
         color: '#333',
         marginVertical: 15,
     },
-    // Stiluri Card
     card: {
         flexDirection: 'row',
         backgroundColor: '#fff',
@@ -311,7 +408,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#555',
     },
-    // Modal Styles
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
