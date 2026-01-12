@@ -24,6 +24,21 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
+
+    public User login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilizator negăsit"));
+
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Credențiale invalide");
+        }
+
+        return user;
+    }
+
+
     @Transactional
     public void register(RegisterRequest request) {
 

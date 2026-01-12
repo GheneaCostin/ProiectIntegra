@@ -24,14 +24,12 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
     private final AuthService authService;
-    private final PasswordEncoder passwordEncoder;
 
     public AuthController(RefreshTokenService refreshTokenService, UserService userService ,AuthService authService,
                           PasswordEncoder passwordEncoder) {
         this.refreshTokenService = refreshTokenService;
         this.userService = userService;
         this.authService = authService;
-        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -42,30 +40,26 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String email = loginData.get("email");
         String password = loginData.get("password");
-        User user = userService.getUserByEmail(email).orElse(null);
-        if (user == null || !user.getPassword().equals(password)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credențiale invalide");
+
+        try {
+            User user = authService.login(email, password);
+
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+            String token = jwtUtil.generateToken(user.getId(), user.getRole());
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "refreshToken", refreshToken.getToken(),
+                            "token", token,
+                            "role", user.getRole(),
+                            "email", user.getEmail(),
+                            "userId", user.getId()
+                    )
+            );
+        } catch (RuntimeException e) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
-        String token = jwtUtil.generateToken(user.getId(), user.getRole());
-        return ResponseEntity.ok(
-
-                Map.of(
-                        "refreshToken",
-                        refreshToken.getToken(),
-                        "token"
-                        , token,
-                        "role"
-                        , user.getRole(),
-
-
-                        "email",
-                        user.getEmail(),
-
-                        "userId",
-                        user.getId()
-                )
-        );
     }
 
     @PostMapping("/refresh")
