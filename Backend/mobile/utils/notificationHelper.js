@@ -1,11 +1,5 @@
     import * as Notifications from 'expo-notifications';
 
-    /**
-     * EXERCIȚIU: Programarea notificărilor bazate pe frecvență.
-     * Interval orar: 08:00 - 22:00 (14 ore disponibile)
-     * Formula: Interval = 14 ore / frecvență
-     * * UPDATE: Grupăm tratamentele pe ore pentru a trimite o singură notificare cumulată.
-     */
     export const scheduleTreatmentNotifications = async (treatments) => {
         if (!Notifications || !Notifications.scheduleNotificationAsync) {
             console.warn("Modulul 'expo-notifications' nu este gata.");
