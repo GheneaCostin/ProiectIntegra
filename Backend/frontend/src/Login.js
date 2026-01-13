@@ -16,6 +16,7 @@ function Login({ onLoginSuccess }) {
         setError("");
 
         try {
+            console.log("Trimitere cerere login către server...");
             const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -30,12 +31,21 @@ function Login({ onLoginSuccess }) {
             const data = await response.json();
 
 
+            console.log("Răspuns server (JSON):", data);
+
+            if (!data.token) {
+                throw new Error("Serverul nu a returnat un token valid!");
+            }
+
+
             localStorage.setItem("token", data.token);
-            localStorage.setItem("refreshToken", data.refreshToken);
+            if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+
             localStorage.setItem("doctorEmail", data.email || email);
             localStorage.setItem("userRole", data.role);
             localStorage.setItem("userId", data.userId);
 
+            console.log("Token salvat în LocalStorage:", localStorage.getItem("token"));
 
             if (typeof onLoginSuccess === 'function') {
                 onLoginSuccess({
@@ -50,6 +60,7 @@ function Login({ onLoginSuccess }) {
             navigate("/dashboard");
 
         } catch (err) {
+            console.error("Eroare Login:", err);
             setError(err.message);
         } finally {
             setLoading(false);
