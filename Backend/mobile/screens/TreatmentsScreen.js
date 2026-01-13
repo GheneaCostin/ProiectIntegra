@@ -5,22 +5,23 @@ import {
     StyleSheet,
     FlatList,
     ActivityIndicator,
-    SafeAreaView,
     StatusBar,
     Alert
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native'; // Import esențial pentru refresh
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../api/api';
 
+import { scheduleTreatmentNotifications } from '../utils/notificationHelper';
+
 const TreatmentsScreen = () => {
     const [treatments, setTreatments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    // Stocăm progresul mapat după ID-ul tratamentului: { 'id_tratament': 45.5 }
     const [treatmentsProgress, setTreatmentsProgress] = useState({});
 
-    // useFocusEffect rulează funcția de fiecare dată când ecranul devine vizibil
     useFocusEffect(
         useCallback(() => {
             fetchTreatments();
@@ -28,28 +29,45 @@ const TreatmentsScreen = () => {
     );
 
     const fetchTreatments = async () => {
-        // Opțional: poți comenta setIsLoading(true) dacă nu vrei spinner la fiecare navigare
-        // setIsLoading(true);
+        console.log("LOG: Începem preluarea tratamentelor...");
         try {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('userToken');
 
             if (!userId) {
+                console.log("LOG: Lipsă UserId");
                 setIsLoading(false);
                 return;
             }
 
-            // 1. Luăm lista de tratamente
             const response = await apiClient.get(`/patient/treatments/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            console.log("LOG: Status Răspuns:", response.status);
+
+            let treatmentList = [];
+
             if (response.status === 204) {
+                console.log("LOG: Nu există tratamente active (204).");
                 setTreatments([]);
+                treatmentList = [];
             } else {
-                setTreatments(response.data);
-                // 2. Imediat ce avem lista, cerem progresul pentru fiecare
-                fetchProgressForTreatments(response.data, token);
+                console.log(`LOG: S-au găsit ${response.data.length} tratamente.`);
+                treatmentList = response.data;
+                setTreatments(treatmentList);
+                fetchProgressForTreatments(treatmentList, token);
+            }
+
+
+
+            if (scheduleTreatmentNotifications) {
+                console.log("LOG: Apelăm scheduleTreatmentNotifications...");
+                scheduleTreatmentNotifications(treatmentList).catch(err =>
+                    console.log("Eroare la programarea notificărilor:", err)
+                );
+            } else {
+                console.warn("Funcția scheduleTreatmentNotifications nu a fost găsită.");
             }
 
         } catch (error) {
@@ -62,7 +80,6 @@ const TreatmentsScreen = () => {
     const fetchProgressForTreatments = async (treatmentList, token) => {
         const progressMap = {};
 
-        // Facem cereri paralele pentru eficiență
         await Promise.all(treatmentList.map(async (treatment) => {
             try {
                 const res = await apiClient.get(`/patient/treatments/${treatment.id}/progress`, {
@@ -73,7 +90,7 @@ const TreatmentsScreen = () => {
                     progressMap[treatment.id] = res.data.progressPercentage;
                 }
             } catch (err) {
-                console.log(`Nu s-a putut lua progresul pentru ${treatment.id}`);
+
                 progressMap[treatment.id] = 0;
             }
         }));
@@ -82,9 +99,9 @@ const TreatmentsScreen = () => {
     };
 
     const getProgressColor = (percentage) => {
-        if (percentage >= 80) return '#388e3c'; // Verde
-        if (percentage >= 40) return '#fbc02d'; // Galben
-        return '#d32f2f'; // Roșu
+        if (percentage >= 80) return '#388e3c';
+        if (percentage >= 40) return '#fbc02d';
+        return '#d32f2f';
     };
 
     const renderTreatmentItem = ({ item }) => {
@@ -102,7 +119,6 @@ const TreatmentsScreen = () => {
                         <Text style={styles.dosage}>{item.dosage}</Text>
                     </View>
 
-                    {/* Badge Progres */}
                     <View style={styles.progressBadge}>
                         <Text style={[styles.progressText, { color: color }]}>
                             {Math.round(progress)}%
@@ -111,7 +127,6 @@ const TreatmentsScreen = () => {
                     </View>
                 </View>
 
-                {/* Bara de progres vizuală sub header */}
                 <View style={styles.progressBarBg}>
                     <View
                         style={[
@@ -255,7 +270,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
     },
-    // Bara de progres subtilă
     progressBarBg: {
         height: 4,
         backgroundColor: '#f0f0f0',
