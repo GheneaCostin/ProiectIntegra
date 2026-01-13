@@ -7,22 +7,27 @@ import {
     TouchableOpacity,
     ScrollView,
     ActivityIndicator,
-    Alert
+    Alert,
+    Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/api';
 
 const EditUserInfoScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        phone: '',
-        address: '',
+        birthDate: '',
         height: '',
-        weight: ''
+        weight: '',
+        sex: '',
+        extrainfo: ''
     });
 
     useEffect(() => {
@@ -34,26 +39,28 @@ const EditUserInfoScreen = ({ navigation }) => {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('userToken');
 
-            // Apel către endpoint-ul creat în UserController
             const response = await apiClient.get(`/user/${userId}/details`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            // Populăm formularul cu datele existente
             if (response.data) {
+                let formattedDate = '';
+                if (response.data.birthDate) {
+                    formattedDate = String(response.data.birthDate).split('T')[0];
+                }
+
                 setFormData({
                     firstName: response.data.firstName || '',
                     lastName: response.data.lastName || '',
-                    phone: response.data.phone || '',
-                    address: response.data.address || '',
-                    // Convertim numerele în string pentru TextInput
+                    birthDate: formattedDate,
                     height: response.data.height ? String(response.data.height) : '',
-                    weight: response.data.weight ? String(response.data.weight) : ''
+                    weight: response.data.weight ? String(response.data.weight) : '',
+                    sex: response.data.sex || '',
+                    extrainfo: response.data.extrainfo || ''
                 });
             }
         } catch (error) {
             console.error("Eroare fetch user details:", error);
-            // Nu blocăm utilizatorul, poate vrea să completeze date noi
         } finally {
             setLoading(false);
         }
@@ -65,11 +72,14 @@ const EditUserInfoScreen = ({ navigation }) => {
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('userToken');
 
-            // Pregătim payload-ul (convertim înapoi în numere)
             const payload = {
-                ...formData,
-                height: parseFloat(formData.height) || 0,
-                weight: parseFloat(formData.weight) || 0
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                birthDate: formData.birthDate,
+                height: parseInt(formData.height) || 0,
+                weight: parseInt(formData.weight) || 0,
+                sex: formData.sex,
+                extrainfo: formData.extrainfo
             };
 
             await apiClient.put(`/user/${userId}/details`, payload, {
@@ -88,6 +98,19 @@ const EditUserInfoScreen = ({ navigation }) => {
         }
     };
 
+    const onDateChange = (event, selectedDate) => {
+        setShowDatePicker(false);
+
+        if (event.type === "set" && selectedDate) {
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+
+            setFormData({ ...formData, birthDate: formattedDate });
+        }
+    };
+
     if (loading) {
         return (
             <View style={styles.center}>
@@ -98,6 +121,7 @@ const EditUserInfoScreen = ({ navigation }) => {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+
             <View style={styles.formGroup}>
                 <Text style={styles.label}>Prenume</Text>
                 <TextInput
@@ -116,6 +140,51 @@ const EditUserInfoScreen = ({ navigation }) => {
                     placeholder="Introdu numele"
                     onChangeText={(text) => setFormData({...formData, lastName: text})}
                 />
+            </View>
+
+            {/* --- SELECȚIE DATA NAȘTERII CU DATEPICKER --- */}
+            <View style={styles.formGroup}>
+                <Text style={styles.label}>Data Nașterii</Text>
+                <TouchableOpacity
+                    style={styles.dateButton}
+                    onPress={() => setShowDatePicker(true)}
+                >
+                    <Text style={[styles.dateButtonText, !formData.birthDate && { color: '#999' }]}>
+                        {formData.birthDate ? formData.birthDate : "Selectează data nașterii"}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={formData.birthDate ? new Date(formData.birthDate) : new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={onDateChange}
+                        maximumDate={new Date()}
+                    />
+                )}
+            </View>
+
+            <View style={styles.formGroup}>
+                <Text style={styles.label}>Sex</Text>
+                <View style={styles.row}>
+                    <TouchableOpacity
+                        style={[styles.genderButton, formData.sex === 'Masculin' && styles.genderButtonSelected]}
+                        onPress={() => setFormData({...formData, sex: 'Masculin'})}
+                    >
+                        <Text style={[styles.genderText, formData.sex === 'Masculin' && styles.genderTextSelected]}>Masculin</Text>
+                    </TouchableOpacity>
+
+                    <View style={{width: 10}} />
+
+                    <TouchableOpacity
+                        style={[styles.genderButton, formData.sex === 'Feminin' && styles.genderButtonSelected]}
+                        onPress={() => setFormData({...formData, sex: 'Feminin'})}
+                    >
+                        <Text style={[styles.genderText, formData.sex === 'Feminin' && styles.genderTextSelected]}>Feminin</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.row}>
@@ -142,25 +211,14 @@ const EditUserInfoScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.formGroup}>
-                <Text style={styles.label}>Telefon</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.phone}
-                    placeholder="Ex: 0712345678"
-                    keyboardType="phone-pad"
-                    onChangeText={(text) => setFormData({...formData, phone: text})}
-                />
-            </View>
-
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>Adresă</Text>
+                <Text style={styles.label}>Informații Suplimentare</Text>
                 <TextInput
                     style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-                    value={formData.address}
-                    placeholder="Introdu adresa completă"
+                    value={formData.extrainfo}
+                    placeholder="Alergii, istoric medical, etc."
                     multiline
                     numberOfLines={3}
-                    onChangeText={(text) => setFormData({...formData, address: text})}
+                    onChangeText={(text) => setFormData({...formData, extrainfo: text})}
                 />
             </View>
 
@@ -203,15 +261,53 @@ const styles = StyleSheet.create({
         fontSize: 16,
         backgroundColor: '#f9f9f9'
     },
+
+    dateButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        padding: 12,
+        backgroundColor: '#f9f9f9',
+        height: 50,
+    },
+    dateButtonText: {
+        fontSize: 16,
+        color: '#000',
+    },
     row: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    genderButton: {
+        flex: 1,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9'
+    },
+    genderButtonSelected: {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#007AFF'
+    },
+    genderText: {
+        fontSize: 16,
+        color: '#666'
+    },
+    genderTextSelected: {
+        color: '#007AFF',
+        fontWeight: 'bold'
     },
     saveButton: {
         backgroundColor: '#007AFF',
         padding: 15,
         borderRadius: 10,
         alignItems: 'center',
-        marginTop: 20
+        marginTop: 10
     },
     saveButtonText: {
         color: '#fff',
