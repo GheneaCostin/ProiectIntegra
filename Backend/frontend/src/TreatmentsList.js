@@ -89,8 +89,9 @@ const TreatmentsList = () => {
         const start = new Date(treatment.startDate);
         const end = new Date(treatment.endDate);
 
+        const dayInMiliSecs = 24*60*60*1000;
         const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (86400000)) + 1;
+        const diffDays = Math.ceil(diffTime / (dayInMiliSecs)) + 1;
 
         const freq = treatment.frequency || treatment.frequencyPerDay || 1;
 
