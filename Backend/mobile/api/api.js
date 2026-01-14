@@ -32,11 +32,11 @@ export const register = async (data) => {
 
 export const exportTreatmentsPdf = async (exportDto, token) => {
     return apiClient.post(
-        "/treatments/export", // Asigură-te că acest endpoint există în Backend Controller
+        "/treatments/export",
         exportDto,
         {
             headers: { 'Authorization': `Bearer ${token}` },
-            responseType: "arraybuffer", // Critic pentru a primi PDF-ul corect
+            responseType: "arraybuffer",
         }
     );
 };
