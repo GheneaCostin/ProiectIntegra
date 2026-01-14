@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const API_URL = 'http://192.168.1.100:8080/api';
+const API_URL = 'http://192.168.1.103:8080/api';
 
 const apiClient = axios.create({
     baseURL: API_URL,
@@ -28,6 +28,17 @@ export const register = async (data) => {
         console.log("Register API Error:", error);
         throw error;
     }
+};
+
+export const exportTreatmentsPdf = async (exportDto, token) => {
+    return apiClient.post(
+        "/treatments/export", // Asigură-te că acest endpoint există în Backend Controller
+        exportDto,
+        {
+            headers: { 'Authorization': `Bearer ${token}` },
+            responseType: "arraybuffer", // Critic pentru a primi PDF-ul corect
+        }
+    );
 };
 
 export default apiClient;
