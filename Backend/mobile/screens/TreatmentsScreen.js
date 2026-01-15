@@ -196,7 +196,7 @@ const TreatmentsScreen = () => {
                             {item.endDate ? new Date(item.endDate).toLocaleDateString() : 'Nedeterminat'}
                         </Text>
                     </View>
-                    {item.notes && (
+                    {item.notes && (    
                         <View style={styles.notesContainer}>
                             <Text style={styles.notesText}>Note: {item.notes}</Text>
                         </View>
