@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Test WebSocket</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            width: 400px;
+            overflow: auto;
+            padding: 5px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .message { margin-bottom: 5px; border-bottom: 1px solid #eee; padding: 3px;}
+        #controls { margin-bottom: 10px; }
+        input { padding: 5px; margin-right: 5px; }
+        button { padding: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h2>Chat Test WebSocket (Doctor ↔ Pacient)</h2>
+
+<div id="messages"></div>
+
+<div id="controls">
+    <input id="userIdInput" type="text" placeholder="User ID (ex: doctor1)" style="width: 150px;">
+    <input id="msgInput" type="text" placeholder="Scrie mesaj..." style="width: 200px;">
+    <button id="sendBtn">Trimite</button>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script>
+
+    var socket = new SockJS('http://localhost:8080/chat')
+    var stompClient = Stomp.over(socket);
+
+    var messagesDiv = document.getElementById('messages');
+    var input = document.getElementById('msgInput');
+    var userIdInput = document.getElementById('userIdInput');
+    var sendBtn = document.getElementById('sendBtn');
+
+
+    function showMessage(msg) {
+        var div = document.createElement('div');
+        div.className = 'message';
+
+        div.textContent = msg.senderId + ": " + msg.text;
+
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+
+    stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+
+
+        stompClient.subscribe('/topic/messages', function (messageOutput) {
+
+            var msg = JSON.parse(messageOutput.body);
+            showMessage(msg);
+        });
+    });
+
+
+    sendBtn.onclick = function() {
+        var text = input.value.trim();
+        var senderId = userIdInput.value.trim();
+
+        if(text === '' || senderId === '') {
+            alert("Completeaza User ID și Mesajul!");
+            return;
+        }
+
+
+        var receiverId = (senderId === 'doctor1') ? 'pacient1' : 'doctor1';
+
+
+        stompClient.send("/app/send", {}, JSON.stringify({
+            senderId: senderId,
+            receiverId: receiverId,
+            text: text
+        }));
+
+        input.value = '';
+    };
+</script>
+
+</body>
+</html>
