@@ -5,16 +5,20 @@ import StatCard from "./StatCard";
 import "./Dashboard.css";
 import { differenceInYears } from "date-fns";
 
-
-
-
 const PatientDetails = ({ patient }) => {
     const navigate = useNavigate();
 
-
     const handlePrescribeClick = () => {
+
         const patientId = patient.userId || patient.id;
         navigate(`/prescribe?patientId=${patientId}`);
+    };
+
+
+    const handleChatClick = () => {
+        const patientId = patient.userId || patient.id;
+        const patientName = `${patient.firstName} ${patient.lastName}`;
+        navigate(`/chat/${patientId}`, { state: { otherUserName: patientName } });
     };
 
     const calculateAge = (birthDateString) => {
@@ -29,17 +33,16 @@ const PatientDetails = ({ patient }) => {
 
     return (
         <div>
-            {/* Header Detalii */}
+
             <div className="details-header">
                 <h2 className="details-name">{patient.firstName} {patient.lastName}</h2>
                 <p className="details-id">ID: {patient.userId || 'N/A'}</p>
             </div>
 
-            {/* Grid cu Informații Medicale */}
+
             <div className="details-grid">
                 <div>
                     <p className="detail-label">Vârstă</p>
-
                     <p className="detail-value">
                         {patient.birthDate ? calculateAge(patient.birthDate) : (patient.age ? `${patient.age} ani` : '-')}
                     </p>
@@ -58,7 +61,7 @@ const PatientDetails = ({ patient }) => {
                 </div>
             </div>
 
-            {/* Secțiunea Info Extra */}
+
             <div className="extra-info-section">
                 <p className="detail-label">Informații Suplimentare</p>
                 <div className="extra-info-box">
@@ -67,12 +70,36 @@ const PatientDetails = ({ patient }) => {
             </div>
 
 
-            <button
-                onClick={handlePrescribeClick}
-                className="prescribe-btn"
-            >
-                Prescrie Tratament
-            </button>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                    onClick={handlePrescribeClick}
+                    className="prescribe-btn"
+                    style={{ flex: 1 }}
+                >
+                    Prescrie Tratament
+                </button>
+
+                <button
+                    onClick={handleChatClick}
+                    className="chat-btn"
+                    style={{
+                        flex: 1,
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        padding: '12px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#218838'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#28a745'}
+                >
+                    Chat
+                </button>
+            </div>
         </div>
     );
 };
@@ -150,7 +177,7 @@ function Dashboard() {
     return (
         <div className="dashboard-container">
 
-            {/* Header */}
+
             <div className="dashboard-header">
                 <div className="header-title">
                     <h1>Dashboard Medical</h1>
@@ -161,17 +188,17 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* Carduri Statistici */}
+
             <div className="stats-container">
                 <StatCard title="Total Pacienți" value={patients.length} />
                 <StatCard title="Tratamente Active" value={activeTreatmentsCount} />
                 <StatCard title="Progres Mediu" value="0%" />
             </div>
 
-            {/* Zona Principală: Listă + Detalii */}
+
             <div className="dashboard-content">
 
-                {/* LISTA DE PACIENȚI (STÂNGA) */}
+
                 <div className="patient-list-panel">
                     <div className="search-box-container">
                         <input
@@ -205,7 +232,7 @@ function Dashboard() {
                     )}
                 </div>
 
-                {/* DETALII PACIENT (DREAPTA) */}
+
                 <div className="patient-details-panel">
                     {selectedPatient ? (
                         <PatientDetails patient={selectedPatient} />

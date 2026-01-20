@@ -89,4 +89,18 @@ export const createExport = async (exportBody) => {
         console.error("Export PDF error:", error);
         throw error;
     }
+
+
+};
+
+export const getChatHistory = async (userId1, userId2) => {
+    try {
+        const response = await axiosInstance.get(`/messages/history`, {
+            params: { userId1, userId2 }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching chat history:", error);
+        throw error;
+    }
 };
