@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Importăm useEffect
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Login from "./Login";
@@ -7,6 +7,7 @@ import NavBar from "./Navbar";
 import PrescriptionForm from "./PrescriptionForm";
 import TreatmentsList from "./TreatmentsList";
 import Export from "./Export";
+import Chat from "./Chat";
 
 function App() {
     const [user, setUser] = useState({
@@ -22,21 +23,21 @@ function App() {
         const doctorEmail = localStorage.getItem("doctorEmail");
 
         if (token && role) {
-            // Dacă avem token și rol salvate, considerăm utilizatorul autentificat
             setUser({
                 loggedIn: true,
                 role: role,
                 email: doctorEmail,
             });
         }
-    }, []); // Se execută o singură dată la montarea aplicației
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("doctorEmail");
         localStorage.removeItem("doctorName");
-        localStorage.removeItem("userRole"); // Ștergem și rolul
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userId");
 
         setUser({ loggedIn: false, role: null });
     };
@@ -70,6 +71,10 @@ function App() {
                     <Route
                         path="/export"
                         element={<Export />}
+                    />
+                    <Route
+                        path="/chat/:otherUserId"
+                        element={<Chat />}
                     />
 
                 </Routes>
