@@ -1,45 +1,54 @@
-    import React from 'react';
-    import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-    import { Ionicons,  MaterialCommunityIcons  } from '@expo/vector-icons';
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons,  MaterialCommunityIcons  } from '@expo/vector-icons';
 
 
-    import HomeScreen from '../screens/HomeScreen';
-    import SettingsScreen from '../screens/SettingsScreen';
-    import TreatmentsScreen from '../screens/TreatmentsScreen';
-    import CalendarScreen from '../screens/CalendarScreen';
+import HomeScreen from '../screens/HomeScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import TreatmentsScreen from '../screens/TreatmentsScreen';
+import CalendarScreen from '../screens/CalendarScreen';
+import ChatScreen from '../screens/ChatScreen';
 
-    const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator();
 
-    export default function TabNavigator() {
-        return (
-            <Tab.Navigator
-                screenOptions={({ route }) => ({
-                    tabBarIcon: ({ focused, color, size }) => {
-                        if (route.name === 'Home') {
-                            const iconName = focused ? 'home' : 'home-outline';
-                            return <Ionicons name={iconName} size={size} color={color} />;
-                        }
-                        else if (route.name === 'Calendar') {
-                            const iconName = focused ? 'calendar' : 'calendar-outline';
-                            return <Ionicons name={iconName} size={size} color={color} />;
-                        }
-                        else if (route.name === 'Settings') {
-                            const iconName = focused ? 'settings' : 'settings-outline';
-                            return <Ionicons name={iconName} size={size} color={color} />;
-                        } else if
-                            (route.name === 'Tratamente') {
-                            return <MaterialCommunityIcons name="pill" size={size} color={color} />;
-                        }
-                    },
-                    tabBarActiveTintColor: '#007AFF',
-                    tabBarInactiveTintColor: 'gray',
-                    headerShown: false,
-                })}
-            >
-                <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Calendar" component={CalendarScreen} />
-                <Tab.Screen name="Tratamente" component={TreatmentsScreen} />
-                <Tab.Screen name="Settings" component={SettingsScreen} />
-            </Tab.Navigator>
-        );
-    }
+export default function TabNavigator() {
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                tabBarIcon: ({ focused, color, size }) => {
+                    if (route.name === 'Home') {
+                        const iconName = focused ? 'home' : 'home-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
+                    }
+                    else if (route.name === 'Calendar') {
+                        const iconName = focused ? 'calendar' : 'calendar-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
+                    }
+                    else if (route.name === 'Settings') {
+                        const iconName = focused ? 'settings' : 'settings-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
+                    } else if (route.name === 'Tratamente') {
+                        return <MaterialCommunityIcons name="pill" size={size} color={color} />;
+                    } else if (route.name === 'Chat') {
+                        const iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+                        return <Ionicons name={iconName} size={size} color={color} />;
+                    }
+                },
+                tabBarActiveTintColor: '#007AFF',
+                tabBarInactiveTintColor: 'gray',
+                headerShown: false,
+            })}
+        >
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Calendar" component={CalendarScreen} />
+            <Tab.Screen name="Tratamente" component={TreatmentsScreen} />
+            <Tab.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ headerShown: true, title: 'Discutie cu Medicul' }}
+            />
+
+            <Tab.Screen name="Settings" component={SettingsScreen} />
+        </Tab.Navigator>
+    );
+}
