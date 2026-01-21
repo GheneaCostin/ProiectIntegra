@@ -25,29 +25,53 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     background-color: #f8f9fa;
 }
 
-.message-bubble {
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
     max-width: 70%;
+}
+
+.my-wrapper {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.other-wrapper {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+
+.sender-name {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 3px;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+.message-bubble {
     padding: 10px 15px;
     border-radius: 15px;
     font-size: 14px;
     position: relative;
     word-wrap: break-word;
+    width: fit-content;
 }
 
-
 .my-message {
-    align-self: flex-end;
     background-color: #007bff;
     color: white;
     border-bottom-right-radius: 2px;
 }
 
 .other-message {
-    align-self: flex-start;
     background-color: #e9ecef;
     color: #333;
     border-bottom-left-radius: 2px;
