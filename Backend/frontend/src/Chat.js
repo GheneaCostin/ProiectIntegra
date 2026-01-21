@@ -7,7 +7,8 @@ import './Chat.css';
 const Chat = () => {
     const { otherUserId } = useParams();
     const location = useLocation();
-    const chatPartnerName = location.state?.otherUserName || otherUserId;
+
+    const chatPartnerName = location.state?.otherUserName || "Utilizator";
 
     const [currentUserId, setCurrentUserId] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -52,11 +53,9 @@ const Chat = () => {
         fetchHistory();
     }, [otherUserId]);
 
-
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
-
 
     const handleSendMessage = () => {
         if (!newMessage.trim() || !currentUserId) return;
@@ -80,14 +79,23 @@ const Chat = () => {
             <div className="chat-messages">
                 {messages.map((msg, index) => {
                     const isMyMessage = msg.senderId === currentUserId;
+
+                    const displayName = isMyMessage ? "Eu" : chatPartnerName;
+
                     return (
                         <div
                             key={index}
-                            className={`message-bubble ${isMyMessage ? 'my-message' : 'other-message'}`}
+
+                            className={`message-wrapper ${isMyMessage ? 'my-wrapper' : 'other-wrapper'}`}
                         >
-                            <div className="message-content">{msg.text}</div>
-                            <div className="message-time">
-                                {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+
+                            <span className="sender-name">{displayName}</span>
+
+                            <div className={`message-bubble ${isMyMessage ? 'my-message' : 'other-message'}`}>
+                                <div className="message-content">{msg.text}</div>
+                                <div className="message-time">
+                                    {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
                             </div>
                         </div>
                     );
