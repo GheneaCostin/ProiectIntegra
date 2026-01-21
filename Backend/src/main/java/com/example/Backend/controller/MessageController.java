@@ -28,4 +28,17 @@ public class MessageController {
         List<Message> messages = messageService.getChatMessages(senderId, receiverId);
         return ResponseEntity.ok(messages);
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(
+            @RequestParam String userId1,
+            @RequestParam String userId2) {
+        try {
+            List<Message> history = messageService.getConversationHistory(userId1, userId2);
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Eroare la preluarea istoricului: " + e.getMessage());
+        }
+    }
+
 }

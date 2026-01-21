@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
@@ -10,36 +10,32 @@ import Export from "./Export";
 import Chat from "./Chat";
 
 function App() {
-    const [user, setUser] = useState({
-        loggedIn: false,
-        role: null,
-        email: null,
-    });
 
-
-    useEffect(() => {
+    const [user, setUser] = useState(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("userRole");
         const doctorEmail = localStorage.getItem("doctorEmail");
 
-        if (token && role) {
-            setUser({
-                loggedIn: true,
-                role: role,
-                email: doctorEmail,
-            });
+        console.log("App Initialization - Token Found:", !!token);
+
+        return {
+            loggedIn: !!token,
+            role: role,
+            email: doctorEmail,
+        };
+    });
+
+    useEffect(() => {
+        console.log("Current User State:", user);
+        const token = localStorage.getItem("token");
+        if (!token && user.loggedIn) {
+            handleLogout();
         }
-    }, []);
+    }, [user]);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("doctorEmail");
-        localStorage.removeItem("doctorName");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("userId");
-
-        setUser({ loggedIn: false, role: null });
+        localStorage.clear();
+        setUser({ loggedIn: false, role: null, email: null });
     };
 
     return (
@@ -49,32 +45,38 @@ function App() {
             <div className="App">
                 <Routes>
                     <Route
+                        path="/"
+                        element={user.loggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+                    />
+
+                    <Route
                         path="/login"
-                        element={<Login onLoginSuccess={setUser} />}
+                        element={user.loggedIn ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={setUser} />}
                     />
 
                     <Route
                         path="/dashboard"
-                        element={<Dashboard user={user} />}
+                        element={user.loggedIn ? <Dashboard user={user} /> : <Navigate to="/login" />}
                     />
 
                     <Route
                         path="/prescribe"
-                        element={<PrescriptionForm />}
+                        element={user.loggedIn ? <PrescriptionForm /> : <Navigate to="/login" />}
                     />
 
                     <Route
                         path="/treatments"
-                        element={<TreatmentsList />}
+                        element={user.loggedIn ? <TreatmentsList /> : <Navigate to="/login" />}
                     />
 
                     <Route
                         path="/export"
-                        element={<Export />}
+                        element={user.loggedIn ? <Export /> : <Navigate to="/login" />}
                     />
+
                     <Route
                         path="/chat/:otherUserId"
-                        element={<Chat />}
+                        element={user.loggedIn ? <Chat /> : <Navigate to="/login" />}
                     />
 
                 </Routes>

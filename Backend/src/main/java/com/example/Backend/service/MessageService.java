@@ -22,4 +22,11 @@ public class MessageService {
     public List<Message> getChatMessages(String senderId, String receiverId) {
         return messageRepository.findBySenderIdAndReceiverIdOrderByTimestampAsc(senderId, receiverId);
     }
+
+    public List<Message> getConversationHistory(String userId1, String userId2) {
+        return messageRepository.findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderByTimestampAsc(
+                userId1, userId2,
+                userId2, userId1
+        );
+    }
 }
