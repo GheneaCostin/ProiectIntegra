@@ -15,8 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { getChatHistory } from '../api/api';
 import { connectWebSocket, sendMessageWS, disconnectWebSocket } from '../api/websocket';
 
-const ChatScreen = () => {
-    const PREDEFINED_DOCTOR_ID = "691ac9c079847f29541fac57";
+const ChatScreen = ({ route, navigation }) => {
+
+    const { otherUserId, otherUserName } = route.params || {};
+    const chatPartnerId = otherUserId || "691ac9c079847f29541fac57";
+    const chatPartnerName = otherUserName || "Doctor";
 
     const [currentUserId, setCurrentUserId] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -24,6 +27,12 @@ const ChatScreen = () => {
     const [loading, setLoading] = useState(true);
 
     const flatListRef = useRef();
+
+    useEffect(() => {
+        if (chatPartnerName) {
+            navigation.setOptions({ title: chatPartnerName });
+        }
+    }, [chatPartnerName, navigation]);
 
     useEffect(() => {
         setupChat();
@@ -34,23 +43,21 @@ const ChatScreen = () => {
 
     const setupChat = async () => {
         try {
-
             const userId = await AsyncStorage.getItem('userId');
             const token = await AsyncStorage.getItem('userToken');
             setCurrentUserId(userId);
 
-            if (userId && PREDEFINED_DOCTOR_ID) {
-
-                const history = await getChatHistory(userId, PREDEFINED_DOCTOR_ID, token);
+            if (userId && chatPartnerId) {
+                console.log(`Loading chat: ${userId} <-> ${chatPartnerId}`);
+                const history = await getChatHistory(userId, chatPartnerId, token);
                 setMessages(history);
             }
-
 
             connectWebSocket((incomingMessage) => {
                 setMessages((prevMessages) => {
                     const isRelevant =
-                        (incomingMessage.senderId === userId && incomingMessage.receiverId === PREDEFINED_DOCTOR_ID) ||
-                        (incomingMessage.senderId === PREDEFINED_DOCTOR_ID && incomingMessage.receiverId === userId);
+                        (incomingMessage.senderId === userId && incomingMessage.receiverId === chatPartnerId) ||
+                        (incomingMessage.senderId === chatPartnerId && incomingMessage.receiverId === userId);
 
                     if (isRelevant) {
                         return [...prevMessages, incomingMessage];
@@ -75,7 +82,7 @@ const ChatScreen = () => {
 
         const messagePayload = {
             senderId: currentUserId,
-            receiverId: PREDEFINED_DOCTOR_ID,
+            receiverId: chatPartnerId,
             text: inputText.trim()
         };
 
@@ -91,22 +98,29 @@ const ChatScreen = () => {
                 styles.messageContainer,
                 isMyMessage ? styles.myMessageContainer : styles.otherMessageContainer
             ]}>
-                <View style={[
-                    styles.messageBubble,
-                    isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble
-                ]}>
-                    <Text style={[
-                        styles.messageText,
-                        isMyMessage ? styles.myMessageText : styles.otherMessageText
-                    ]}>
-                        {item.text}
+                <View style={{ alignItems: isMyMessage ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+                    {/* Afișăm numele deasupra mesajului (opțional, dacă vrei ca pe web) */}
+                    <Text style={styles.senderNameText}>
+                        {isMyMessage ? "Eu" : chatPartnerName}
                     </Text>
-                    <Text style={[
-                        styles.timeText,
-                        isMyMessage ? styles.myTimeText : styles.otherTimeText
+
+                    <View style={[
+                        styles.messageBubble,
+                        isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble
                     ]}>
-                        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                        <Text style={[
+                            styles.messageText,
+                            isMyMessage ? styles.myMessageText : styles.otherMessageText
+                        ]}>
+                            {item.text}
+                        </Text>
+                        <Text style={[
+                            styles.timeText,
+                            isMyMessage ? styles.myTimeText : styles.otherTimeText
+                        ]}>
+                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
                 </View>
             </View>
         );
@@ -175,10 +189,18 @@ const styles = StyleSheet.create({
     otherMessageContainer: {
         justifyContent: 'flex-start',
     },
+    senderNameText: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 2,
+        marginLeft: 4,
+        marginRight: 4,
+        fontWeight: '600',
+    },
     messageBubble: {
-        maxWidth: '80%',
         padding: 12,
         borderRadius: 20,
+        width: '100%',
     },
     myMessageBubble: {
         backgroundColor: '#007bff',

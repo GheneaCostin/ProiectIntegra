@@ -1,5 +1,6 @@
 package com.example.Backend.controller;
 
+import com.example.Backend.dto.ConversationDTO;
 import com.example.Backend.model.Message;
 import com.example.Backend.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,16 @@ public class MessageController {
             return ResponseEntity.ok(history);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Eroare la preluarea istoricului: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/conversations/{userId}")
+    public ResponseEntity<?> getConversations(@PathVariable String userId) {
+        try {
+            List<ConversationDTO> conversations = messageService.getUserConversations(userId);
+            return ResponseEntity.ok(conversations);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Eroare la preluarea conversațiilor: " + e.getMessage());
         }
     }
 
