@@ -42,12 +42,20 @@ public class MessageService {
         );
     }
 
-
     public List<ConversationDTO> getUserConversations(String currentUserId) {
+
         List<Message> allMessages = messageRepository.findBySenderIdOrReceiverIdOrderByTimestampDesc(currentUserId, currentUserId);
+
+        if (allMessages == null) {
+            return new ArrayList<>();
+        }
+
         Map<String, Message> latestMessagesMap = new LinkedHashMap<>();
 
         for (Message msg : allMessages) {
+
+            if (msg.getSenderId() == null || msg.getReceiverId() == null) continue;
+
             String partnerId = msg.getSenderId().equals(currentUserId) ? msg.getReceiverId() : msg.getSenderId();
             latestMessagesMap.putIfAbsent(partnerId, msg);
         }
@@ -60,23 +68,26 @@ public class MessageService {
 
             String fullName = "Utilizator Necunoscut";
 
-            Optional<UserDetails> detailsOpt = userDetailsRepository.findByUserId(partnerId);
+            try {
 
-            if (detailsOpt.isPresent()) {
-                UserDetails details = detailsOpt.get();
-                if (details.getFirstName() != null && details.getLastName() != null) {
-                    fullName = details.getFirstName() + " " + details.getLastName();
+                Optional<UserDetails> detailsOpt = userDetailsRepository.findByUserId(partnerId);
+                if (detailsOpt.isPresent()) {
+                    UserDetails details = detailsOpt.get();
+                    if (details.getFirstName() != null && details.getLastName() != null) {
+                        fullName = details.getFirstName() + " " + details.getLastName();
+                    }
                 }
-            }
 
 
-            if (fullName.equals("Utilizator Necunoscut")) {
-                Optional<User> userOpt = userRepository.findById(partnerId);
-                if (userOpt.isPresent()) {
-                    fullName = userOpt.get().getEmail();
+                if (fullName.equals("Utilizator Necunoscut")) {
+                    Optional<User> userOpt = userRepository.findById(partnerId);
+                    if (userOpt.isPresent()) {
+                        fullName = userOpt.get().getEmail();
+                    }
                 }
+            } catch (Exception e) {
+                System.err.println("Eroare la căutarea numelui pentru " + partnerId + ": " + e.getMessage());
             }
-
 
             conversations.add(new ConversationDTO(
                     partnerId,

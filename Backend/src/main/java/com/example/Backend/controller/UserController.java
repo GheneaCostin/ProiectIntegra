@@ -1,6 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.dto.PasswordChangeRequest;
+import com.example.Backend.dto.DoctorDTO;
 import com.example.Backend.model.User;
 import com.example.Backend.model.UserDetails;
 import com.example.Backend.repository.UserDetailsRepository;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +25,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Constructor cu injecția tuturor dependențelor necesare
+
     public UserController(UserService service,
                           UserDetailsRepository userDetailsRepository,
                           UserRepository userRepository,
@@ -34,43 +36,39 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // --- ENDPOINT-URI EXISTENTE ---
+
 
     @GetMapping
     public List<User> getAllUsers() {
         return service.getAllUsers();
     }
 
-    // GET: user după email
+
     @GetMapping("/{email}")
     public Optional<User> getUserByEmail(@PathVariable String email) {
         return service.getUserByEmail(email);
     }
 
-    // GET: user după id
+
     @GetMapping("/id/{id}")
     public Optional<User> getUserById(@PathVariable String id) {
         return service.getUserById(id);
     }
 
-    // POST: adaugă un nou user
+
     @PostMapping
     public User addUser(@RequestBody User user) {
         return service.addUser(user);
     }
 
-    // DELETE: șterge un user după id
+
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable String id) {
         service.deleteUser(id);
     }
 
-    // --- ENDPOINT-URI NOI (Profil & Parolă) ---
 
-    /**
-     * Endpoint pentru a prelua detaliile utilizatorului curent (Profil)
-     * URL: GET /api/users/{userId}/details
-     */
+
     @GetMapping("/{userId}/details")
     public ResponseEntity<?> getUserDetails(@PathVariable String userId) {
         Optional<UserDetails> details = userDetailsRepository.findByUserId(userId);
@@ -81,10 +79,6 @@ public class UserController {
         }
     }
 
-    /**
-     * Endpoint pentru a actualiza detaliile utilizatorului
-     * URL: PUT /api/users/{userId}/details
-     */
     @PutMapping("/{userId}/details")
     public ResponseEntity<?> updateUserDetails(@PathVariable String userId, @RequestBody UserDetails updatedDetails) {
         Optional<UserDetails> existingDetailsOpt = userDetailsRepository.findByUserId(userId);
@@ -92,31 +86,27 @@ public class UserController {
         if (existingDetailsOpt.isPresent()) {
             UserDetails existing = existingDetailsOpt.get();
 
-            // Actualizăm câmpurile permise
             existing.setFirstName(updatedDetails.getFirstName());
             existing.setLastName(updatedDetails.getLastName());
             existing.setHeight(updatedDetails.getHeight());
             existing.setWeight(updatedDetails.getWeight());
             existing.setBirthDate(updatedDetails.getBirthDate());
             existing.setSex(updatedDetails.getSex());
+            if(updatedDetails.getExtrainfo() != null) {
+                existing.setExtrainfo(updatedDetails.getExtrainfo());
+            }
 
             userDetailsRepository.save(existing);
             return ResponseEntity.ok("Date actualizate cu succes.");
         } else {
-            // Dacă nu există detalii, creăm unele noi (Edge case)
             updatedDetails.setUserId(userId);
             userDetailsRepository.save(updatedDetails);
             return ResponseEntity.ok("Date create cu succes.");
         }
     }
 
-    /**
-     * Endpoint pentru schimbarea parolei
-     * URL: POST /api/users/change-password
-     */
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request) {
-        // Căutăm userul folosind serviciul existent
         Optional<User> userOpt = service.getUserById(request.getUserId());
 
         if (userOpt.isEmpty()) {
@@ -125,15 +115,41 @@ public class UserController {
 
         User user = userOpt.get();
 
-        // 1. Verificăm dacă parola veche trimisă de user corespunde cu cea din DB
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parola curentă este incorectă.");
         }
 
-        // 2. Criptăm noua parolă și o salvăm
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
         return ResponseEntity.ok("Parola a fost schimbată cu succes.");
+    }
+
+    @GetMapping("/doctors")
+    public ResponseEntity<List<DoctorDTO>> getAllDoctors() {
+        List<User> doctors = userRepository.findByRole("doctor");
+        List<DoctorDTO> doctorDTOS = new ArrayList<>();
+
+        for (User doc : doctors) {
+            String fullName = "Doctor (Fără Nume)";
+            String specialization = "General";
+
+            Optional<UserDetails> detailsOpt = userDetailsRepository.findByUserId(doc.getId());
+            if (detailsOpt.isPresent()) {
+                UserDetails details = detailsOpt.get();
+                if (details.getFirstName() != null && details.getLastName() != null) {
+                    fullName = "Dr. " + details.getFirstName() + " " + details.getLastName();
+                }
+                if (details.getExtrainfo() != null) {
+                    specialization = details.getExtrainfo();
+                }
+            } else {
+                fullName = doc.getEmail();
+            }
+
+            doctorDTOS.add(new DoctorDTO(doc.getId(), fullName, specialization));
+        }
+
+        return ResponseEntity.ok(doctorDTOS);
     }
 }

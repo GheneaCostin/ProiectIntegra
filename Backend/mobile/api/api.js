@@ -1,5 +1,7 @@
 import axios from 'axios';
-const BASE_ROOT = 'http://192.168.1.103:8080';
+
+
+const BASE_ROOT = 'http://192.168.1.100:8080';
 const API_URL = `${BASE_ROOT}/api`;
 
 const apiClient = axios.create({
@@ -19,7 +21,6 @@ export const login = async (data) => {
         throw error;
     }
 };
-
 export const register = async (data) => {
     try {
         const response = await apiClient.post('/auth/register', data);
@@ -41,8 +42,8 @@ export const exportTreatmentsPdf = async (exportDto, token) => {
     );
 };
 
-
 export const getChatHistory = async (userId1, userId2, token) => {
+
     const targetUrl = `${BASE_ROOT}/messages/history`;
     try {
         const response = await axios.get(targetUrl, {
@@ -53,11 +54,11 @@ export const getChatHistory = async (userId1, userId2, token) => {
     } catch (error) {
 
         try {
-            const responseFallback = await axios.get(`${BASE_ROOT}/api/messages/history`, {
+            const response2 = await axios.get(`${BASE_ROOT}/api/messages/history`, {
                 params: { userId1, userId2 },
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            return responseFallback.data;
+            return response2.data;
         } catch (e) {
             console.error("Error fetching history:", error);
             throw error;
@@ -65,11 +66,8 @@ export const getChatHistory = async (userId1, userId2, token) => {
     }
 };
 
-
 export const getUserConversations = async (userId, token) => {
     const targetUrl = `${BASE_ROOT}/messages/conversations/${userId}`;
-    console.log(`[Mobile API] Fetching conversations from: ${targetUrl}`);
-
     try {
         const response = await axios.get(targetUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -77,12 +75,34 @@ export const getUserConversations = async (userId, token) => {
         return response.data;
     } catch (error) {
         try {
-            const responseFallback = await axios.get(`${BASE_ROOT}/api/messages/conversations/${userId}`, {
+            console.log("Retrying conversations on /api/messages...");
+            const response2 = await axios.get(`${BASE_ROOT}/api/messages/conversations/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            return responseFallback.data;
+            return response2.data;
         } catch (e) {
             console.error("Error fetching conversations:", error);
+            throw error;
+        }
+    }
+};
+
+
+export const getDoctorsList = async (token) => {
+    const targetUrl = `${BASE_ROOT}/api/users/doctors`;
+    try {
+        const response = await axios.get(targetUrl, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        try {
+            const response2 = await axios.get(`${BASE_ROOT}/users/doctors`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response2.data;
+        } catch (e) {
+            console.error("Error fetching doctors:", error);
             throw error;
         }
     }
