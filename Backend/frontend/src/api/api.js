@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 const API_URL = "http://localhost:8080/api";
 
 const getToken = () => localStorage.getItem("token");
@@ -13,10 +12,8 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
-
 axiosInstance.interceptors.request.use(config => {
     const token = getToken();
-
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,7 +32,6 @@ export const prescribeTreatment = async (treatmentData) => {
     return response.data;
 };
 
-
 export const updateTreatment = async (id, treatmentData) => {
     const response = await axiosInstance.put(`treatments/${id}`, treatmentData);
     return response.data;
@@ -46,20 +42,12 @@ export const deleteTreatment = async (id) => {
     return response.data;
 };
 
-
-export const getTreatmentsByDoctor = async (doctorId, page,  size , search = "", filter = "All") => {
-
+export const getTreatmentsByDoctor = async (doctorId, page, size, search = "", filter = "All") => {
     const params = new URLSearchParams();
     params.append("page", page);
     params.append("size", size);
-
-    if (search) {
-        params.append("search", search);
-    }
-
-    if (filter && filter !== "All") {
-        params.append("filter", filter);
-    }
+    if (search) params.append("search", search);
+    if (filter && filter !== "All") params.append("filter", filter);
 
     const response = await axiosInstance.get(`/doctor/treatments/${doctorId}?${params.toString()}`);
     return response.data;
@@ -67,15 +55,8 @@ export const getTreatmentsByDoctor = async (doctorId, page,  size , search = "",
 
 export const createExport = async (exportBody) => {
     try {
-        const response = await axiosInstance.post(
-            "/treatments/export",
-            exportBody,
-            {
-                responseType: "arraybuffer",
-            }
-        );
-
-        const pdfBlob = new Blob([response.data], {type: "application/pdf"});
+        const response = await axiosInstance.post("/treatments/export", exportBody, { responseType: "arraybuffer" });
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement("a");
         link.href = url;
@@ -83,24 +64,49 @@ export const createExport = async (exportBody) => {
         document.body.appendChild(link);
         link.click();
         link.remove();
-
-
     } catch (error) {
         console.error("Export PDF error:", error);
         throw error;
     }
-
-
 };
+
 
 export const getChatHistory = async (userId1, userId2) => {
     try {
-        const response = await axiosInstance.get(`/messages/history`, {
-            params: { userId1, userId2 }
-        });
-        return response.data;
+
+
+        try {
+            const response = await axiosInstance.get(`/messages/history`, { params: { userId1, userId2 } });
+            return response.data;
+        } catch(e) {
+            const token = getToken();
+            const response = await axios.get("http://localhost:8080/messages/history", {
+                params: { userId1, userId2 },
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
+        }
     } catch (error) {
         console.error("Error fetching chat history:", error);
         throw error;
     }
 };
+
+
+export const markMessagesAsRead = async (senderId, receiverId) => {
+    try {
+        await axiosInstance.post(`/messages/read`, { senderId, receiverId });
+    } catch (error) {
+        try {
+            const token = getToken();
+            await axios.post("http://localhost:8080/messages/read",
+                { senderId, receiverId },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } catch(e) {
+            console.error("Error marking messages as read:", e);
+        }
+    }
+};
+
+export default axiosInstance;
