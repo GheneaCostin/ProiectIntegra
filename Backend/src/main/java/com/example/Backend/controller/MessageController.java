@@ -1,6 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.dto.ConversationDTO;
+import com.example.Backend.dto.ReadReceiptDTO;
 import com.example.Backend.model.Message;
 import com.example.Backend.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +52,11 @@ public class MessageController {
             return ResponseEntity.internalServerError().body("Eroare la preluarea conversațiilor: " + e.getMessage());
         }
     }
+
+    @PostMapping("/read")
+    public void markAsRead(@RequestBody ReadReceiptDTO dto) {
+        messageService.markMessagesAsRead(dto.senderId(), dto.receiverId());
+    }
+
 
 }

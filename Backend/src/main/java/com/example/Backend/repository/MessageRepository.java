@@ -13,5 +13,6 @@ public interface MessageRepository extends MongoRepository<Message, String> {
             String senderId2, String receiverId2
     );
     List<Message> findBySenderIdOrReceiverIdOrderByTimestampDesc(String senderId, String receiverId);
+    List<Message> findBySenderIdAndReceiverIdAndReadFalse(String senderId, String receiverId);
 
 }
