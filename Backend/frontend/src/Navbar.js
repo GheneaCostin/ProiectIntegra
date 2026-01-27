@@ -1,76 +1,96 @@
-import React from "react";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./App.css";
+import { getNotifications } from "./api/api";
+import "./Navbar.css";
 
-export default function Navbar({ user, onLogout }) {
+function NavBar({ user, onLogout }) {
     const navigate = useNavigate();
+    const [notifications, setNotifications] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
 
-    const handleLogout = () => {
-        onLogout();
-        navigate("/login");
+
+    const fetchNotifications = async () => {
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+            try {
+                const data = await getNotifications(userId);
+                setNotifications(data);
+            } catch (error) {
+                console.error("Nu s-au putut încărca notificările.");
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (user.loggedIn) {
+            fetchNotifications();
+            const interval = setInterval(fetchNotifications, 10000);
+            return () => clearInterval(interval);
+        }
+    }, [user.loggedIn]);
+
+    const totalCount = notifications.reduce((acc, curr) => acc + curr.count, 0);
+
+    const handleNotificationClick = (senderId, fullName) => {
+        setShowDropdown(false);
+        navigate(`/chat/${senderId}`, { state: { otherUserName: fullName } });
+
+        setNotifications(prev => prev.filter(n => n.senderId !== senderId));
     };
 
     return (
-        <AppBar position="static">
-            <Toolbar className="navbar-toolbar">
-                <Typography variant="h6" className="navbar-title">
-                    Medical App
-                </Typography>
+        <nav className="navbar">
+            <div className="navbar-brand">Medical App</div>
+            <div className="navbar-links">
+                {user.loggedIn ? (
+                    <>
+                        <Link to="/dashboard">Dashboard</Link>
+                        {user.role === 'doctor' && <Link to="/treatments">Tratamente</Link>}
+                        {user.role === 'doctor' && <Link to="/export">Export</Link>}
 
-                <Box className="navbar-links">
-                    {/* Link Dashboard - doar pentru doctori */}
-                    {user?.loggedIn && user.role === "doctor" && (
-                        <Button color="inherit" component={Link} to="/dashboard">
-                            Dashboard
-                        </Button>
-                    )}
+                        <div className="notification-container">
+                            <div
+                                className="notification-icon"
+                                onClick={() => setShowDropdown(!showDropdown)}
+                            >
+                                🔔
+                                {totalCount > 0 && (
+                                    <span className="notification-badge">{totalCount}</span>
+                                )}
+                            </div>
 
-                    {/* Link Treatments - doar pentru pacienți */}
-                    {user?.loggedIn && user.role === "patient" && (
-                        <Button color="inherit" component={Link} to="/treatments">
-                            Treatments
-                        </Button>
-                    )}
+                            {showDropdown && (
+                                <div className="notification-dropdown">
+                                    <div className="dropdown-header">Notificări</div>
+                                    {notifications.length === 0 ? (
+                                        <div className="notification-item empty">Nu ai mesaje noi.</div>
+                                    ) : (
+                                        notifications.map((notif) => (
+                                            <div
+                                                key={notif.senderId}
+                                                className="notification-item"
+                                                onClick={() => handleNotificationClick(notif.senderId, notif.fullName)}
+                                            >
+                                                <div className="notif-name">{notif.fullName}</div>
+                                                <div className="notif-preview">
+                                                    {notif.message.length > 20 ? notif.message.substring(0, 20) + '...' : notif.message}
+                                                </div>
+                                                <span className="notif-count-badge">{notif.count}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
-                    {user?.loggedIn && user.role === "doctor" && (
-                        <Button color="inherit" component={Link} to="/treatments">
-                            Treatments
-                        </Button>
-                    )}
-
-
-                    {/* Acest buton duce la /prescribe (fără ID), activând dropdown-ul de pacienți */}
-                    {user?.loggedIn && user.role === "doctor" && (
-                        <Button color="inherit" component={Link} to="/prescribe">
-                            Prescribe
-                        </Button>
-                    )}
-
-                    {user?.loggedIn && user.role === "doctor" && (
-                        <Button color="inherit" component={Link} to="/export">
-                            Export PDF
-                        </Button>
-                    )}
-
-                </Box>
-
-                <Box className="navbar-auth">
-                    {!user?.loggedIn ? (
-                        <Button color="inherit" component={Link} to="/login">
-                            Login
-                        </Button>
-                    ) : (
-                        <Button color="inherit" onClick={handleLogout}>
-                            Logout
-                        </Button>
-                    )}
-                </Box>
-            </Toolbar>
-        </AppBar>
+                        <button onClick={onLogout} className="logout-btn">Logout</button>
+                    </>
+                ) : (
+                    <Link to="/login">Login</Link>
+                )}
+            </div>
+        </nav>
     );
 }
+
+export default NavBar;

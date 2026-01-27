@@ -109,4 +109,24 @@ export const markMessagesAsRead = async (senderId, receiverId) => {
     }
 };
 
+export const getNotifications = async (userId) => {
+    try {
+
+        const response = await axiosInstance.get(`/messages/notifications/${userId}`);
+        return response.data;
+    } catch (error) {
+
+        try {
+            const token = getToken();
+            const response = await axios.get(`http://localhost:8080/messages/notifications/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
+        } catch(e) {
+            console.error("Error fetching notifications:", e);
+            return [];
+        }
+    }
+};
+
 export default axiosInstance;
