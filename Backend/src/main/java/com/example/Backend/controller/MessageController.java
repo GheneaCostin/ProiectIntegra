@@ -1,6 +1,7 @@
 package com.example.Backend.controller;
 
 import com.example.Backend.dto.ConversationDTO;
+import com.example.Backend.dto.NotificationsDTO;
 import com.example.Backend.dto.ReadReceiptDTO;
 import com.example.Backend.model.Message;
 import com.example.Backend.service.MessageService;
@@ -56,6 +57,17 @@ public class MessageController {
     @PostMapping("/read")
     public void markAsRead(@RequestBody ReadReceiptDTO dto) {
         messageService.markMessagesAsRead(dto.senderId(), dto.receiverId());
+    }
+
+
+    @GetMapping("/notifications/{userId}")
+    public ResponseEntity<?> getNotifications(@PathVariable String userId) {
+        try {
+            List<NotificationsDTO> notifications = messageService.getNotifications(userId);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Eroare la preluarea notificărilor: " + e.getMessage());
+        }
     }
 
 
