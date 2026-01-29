@@ -40,7 +40,9 @@
     font-weight: bold;
 }
 
+/*Stil pt container*
 
+ */
 .stats-container {
     display: flex;
     gap: 20px;
