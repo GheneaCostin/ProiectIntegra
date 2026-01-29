@@ -3,7 +3,7 @@ import { Client } from '@stomp/stompjs';
 let stompClient = null;
 
 
-const SERVER_IP = '192.168.1.100';
+const SERVER_IP = '192.168.1.102';
 const SERVER_PORT = '8080';
 
 
