@@ -197,7 +197,8 @@ const TreatmentsList = () => {
                         label="Căutare Tratament / Pacient"
                         variant="outlined"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+
+                        onChange={handleSearchChange}
                         sx={{ flex: 1, minWidth: '200px' }}
                     />
 
@@ -207,7 +208,8 @@ const TreatmentsList = () => {
                             labelId="filter-status-label"
                             value={filterStatus}
                             label="Status Tratament"
-                            onChange={(e) => setFilterStatus(e.target.value)}
+
+                            onChange={handleFilterChange}
                         >
                             <MenuItem value="All">Toate</MenuItem>
                             <MenuItem value="Active">Active</MenuItem>
